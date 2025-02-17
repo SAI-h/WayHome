@@ -1,5 +1,6 @@
 package com.example.wayhome.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.wayhome.convert.StationConvert;
@@ -79,7 +80,7 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
                 .set(Point::getPointLat, stationDTO.getStaLat())
                 .set(Point::getPointLng, stationDTO.getStaLng())
                 .set(Point::getEditTime, stationDTO.getEditTime());
-        int resPointUpdate = pointMapper.update(pointLambdaUpdateWrapper);
+        pointMapper.update(pointLambdaUpdateWrapper);
 
         // 更新 station
         Station station = StationConvert.convertToDO(stationDTO);
@@ -89,7 +90,13 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
                 .set(Station::getStaAddress, station.getStaAddress())
                 .set(Station::getEditTime, station.getEditTime())
                 .set(Station::getRemarks, station.getRemarks());
-        int resStationUpdate = stationMapper.update(stationLambdaUpdateWrapper);
+        stationMapper.update(stationLambdaUpdateWrapper);
+    }
 
+    @Override
+    @Transactional
+    public void stationDelete(Long staID, Long pointID) {
+        stationMapper.deleteById(staID);
+        pointMapper.deleteById(pointID);
     }
 }

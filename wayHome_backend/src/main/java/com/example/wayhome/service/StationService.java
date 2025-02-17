@@ -3,8 +3,8 @@ package com.example.wayhome.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.wayhome.dto.StationDTO;
 import com.example.wayhome.entity.Station;
-import com.example.wayhome.utils.Result;
 import com.example.wayhome.vo.StationVO;
+import jakarta.validation.constraints.NotNull;
 
 public interface StationService extends IService<Station> {
 
@@ -22,4 +22,9 @@ public interface StationService extends IService<Station> {
      * 对站点信息进行更新
      */
     void stationUpdate(StationDTO stationDTO);
+
+    /**
+     * 删除站点信息
+     */
+    void stationDelete(Long staID, @NotNull Long pointID);
 }
