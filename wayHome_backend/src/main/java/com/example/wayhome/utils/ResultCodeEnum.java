@@ -13,8 +13,12 @@ import lombok.ToString;
 @ToString
 public enum ResultCodeEnum {
     SUCCESS(200,"success"),
-    LOGIN_ERROR(501,"loginFailed");
+    SQL_ERROR(500, "sqlError"),
+    LOGIN_ERROR(501,"loginFailed"),
+    INSERT_ERROR(601, "insertFailed"),
+    QUERY_ERROR(602, "queryFailed"),
+    UPDATE_ERROR(603, "updateFailed");
 
-    private Integer code;
-    private String message;
+    private final Integer code;
+    private final String message;
 }

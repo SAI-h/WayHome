@@ -8,6 +8,9 @@ import com.example.wayhome.vo.AdminVO;
 
 public interface AdminService extends IService<Admin> {
 
-    Result<AdminVO> adminLogin(AdminDTO adminDTO);
+    /**
+     * 处理管理员的登录操作，并返回管理员的管理辖区
+     */
+    AdminVO adminLogin(AdminDTO adminDTO);
 
 }

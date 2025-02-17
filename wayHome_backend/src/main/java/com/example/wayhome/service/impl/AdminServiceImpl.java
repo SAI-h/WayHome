@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.wayhome.convert.AdminConvert;
 import com.example.wayhome.dto.AdminDTO;
 import com.example.wayhome.entity.Admin;
+import com.example.wayhome.exception.BusinessException;
 import com.example.wayhome.mapper.AdminMapper;
 import com.example.wayhome.service.AdminService;
 import com.example.wayhome.utils.MD5Util;
@@ -20,15 +21,13 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     private AdminMapper adminMapper;
 
     @Override
-    public Result<AdminVO> adminLogin(AdminDTO adminDTO) {
+    public AdminVO adminLogin(AdminDTO adminDTO) {
         // 数据加密
         adminDTO.setPassword(MD5Util.encrypt(adminDTO.getPassword()));
         Admin admin = adminMapper.adminLogin(adminDTO);
         if(admin == null) {
-            return Result.build(null, ResultCodeEnum.LOGIN_ERROR);
-        } else {
-            AdminVO adminVO = AdminConvert.convertToVO(admin);
-            return Result.ok(adminVO);
+            throw new BusinessException(ResultCodeEnum.LOGIN_ERROR);
         }
+        return AdminConvert.convertToVO(admin);
     }
 }
