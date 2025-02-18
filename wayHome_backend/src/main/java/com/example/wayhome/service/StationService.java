@@ -26,5 +26,5 @@ public interface StationService extends IService<Station> {
     /**
      * 删除站点信息
      */
-    void stationDelete(Long staID, @NotNull Long pointID);
+    void stationDelete(Long staID, Long pointID);
 }

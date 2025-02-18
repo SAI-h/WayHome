@@ -17,26 +17,26 @@ public class StationController {
     @Autowired
     private StationService stationService;
 
-    @PostMapping("/insert")
+    @PostMapping
     public Result<?> stationInsert(@Valid @RequestBody StationDTO stationDTO) {
         stationService.stationInsert(stationDTO);
         return Result.ok(null);
     }
 
-    @GetMapping("/query")
-    public Result<StationVO> stationQuery(@RequestParam @NotBlank String staName) {
+    @GetMapping("/{staName}")
+    public Result<StationVO> stationQuery(@PathVariable @NotBlank String staName) {
         StationVO stationVO = stationService.stationQuery(staName);
         return Result.ok(stationVO);
     }
 
-    @PutMapping("/update")
+    @PatchMapping
     public Result<?> stationUpdate(@Valid @RequestBody StationDTO stationDTO) {
         stationService.stationUpdate(stationDTO);
         return Result.ok(null);
     }
 
-    @DeleteMapping("/delete")
-    public Result<?> stationDelete(@RequestParam @NotNull Long staID, @RequestParam @NotNull Long pointID) {
+    @DeleteMapping("/{staID}/{pointID}")
+    public Result<?> stationDelete(@PathVariable @NotNull Long staID, @PathVariable @NotNull Long pointID) {
         stationService.stationDelete(staID, pointID);
         return Result.ok(null);
     }

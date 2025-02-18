@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -17,20 +18,8 @@ public class Route {
     @TableField("routeName")
     private String routeName;
 
-    @TableField("startTime")
-    private LocalTime startTime;
-
-    @TableField("endTime")
-    private LocalTime endTime;
-
-    @TableField("deInterval")
-    private Integer deInterval;
-
     @TableField("cityID")
     private Integer cityID;
-
-    @TableField(exist = false)
-    private City city;
 
     @TableField("remarks")
     private String remarks;
@@ -42,7 +31,6 @@ public class Route {
     @TableLogic
     private Boolean isDeleted;
 
-    @TableField("workdays")
-    private Map<String, Boolean> workdays;
-
+    @TableField(exist = false)
+    private List<Schedule> schedules;
 }
