@@ -10,6 +10,8 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/station")
 public class StationController {
@@ -23,11 +25,18 @@ public class StationController {
         return Result.ok(null);
     }
 
-    @GetMapping("/{staName}")
-    public Result<StationVO> stationQuery(@PathVariable @NotBlank String staName) {
-        StationVO stationVO = stationService.stationQuery(staName);
-        return Result.ok(stationVO);
+    @GetMapping
+    public Result<List<StationVO>> stationQuery(@RequestParam(value = "staName", required = false) String staName,
+                                                @NotNull @RequestParam("cityID") Integer cityID) {
+        List<StationVO> stationVOList = stationService.stationQuery(staName, cityID);
+        return Result.ok(stationVOList);
     }
+//
+//    @GetMapping
+//    public Result<List<StationVO>> stationQueryAll(@NotNull @RequestParam("cityID") Integer cityID) {
+//        List<StationVO> stationVOList = stationService.stationQueryAll(cityID);
+//        return Result.ok(stationVOList);
+//    }
 
     @PatchMapping
     public Result<?> stationUpdate(@Valid @RequestBody StationDTO stationDTO) {
@@ -35,8 +44,9 @@ public class StationController {
         return Result.ok(null);
     }
 
-    @DeleteMapping("/{staID}/{pointID}")
-    public Result<?> stationDelete(@PathVariable @NotNull Long staID, @PathVariable @NotNull Long pointID) {
+    @DeleteMapping
+    public Result<?> stationDelete(@NotNull @RequestParam("staID") Long staID,
+                                   @NotNull @RequestParam("pointID") Long pointID) {
         stationService.stationDelete(staID, pointID);
         return Result.ok(null);
     }

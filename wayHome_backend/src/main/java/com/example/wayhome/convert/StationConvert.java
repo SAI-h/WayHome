@@ -26,10 +26,11 @@ public class StationConvert {
         stationVO.setStaName(station.getStaName());
         stationVO.setStaAddress(station.getStaAddress());
         stationVO.setCityID(station.getCityID());
+        stationVO.setPointID(station.getPointID());
         stationVO.setStaLat(station.getPoint().getPointLat());
         stationVO.setStaLng(station.getPoint().getPointLng());
         stationVO.setRemarks(station.getRemarks());
-        stationVO.setEditTime(LocalTime.from(station.getEditTime()));
+        stationVO.setEditTime(station.getEditTime());
         return stationVO;
     }
 

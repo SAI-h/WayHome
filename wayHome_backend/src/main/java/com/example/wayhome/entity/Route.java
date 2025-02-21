@@ -1,6 +1,7 @@
 package com.example.wayhome.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -27,7 +28,7 @@ public class Route {
     @TableField("editTime")
     private LocalDateTime editTime;
 
-    @TableField("idDeleted")
+    @TableField("isDeleted")
     @TableLogic
     private Boolean isDeleted;
 

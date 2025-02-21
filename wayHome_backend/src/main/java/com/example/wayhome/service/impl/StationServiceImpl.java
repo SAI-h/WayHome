@@ -17,6 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Service
 public class StationServiceImpl extends ServiceImpl<StationMapper, Station> implements StationService {
@@ -63,13 +66,32 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
     }
 
     @Override
-    public StationVO stationQuery(String staName) {
-        Station station = stationMapper.stationQuery(staName);
-        if (station == null) {
+    public List<StationVO> stationQuery(String staName, Integer cityID) {
+        List<Station> stations = stationMapper.stationQuery(staName, cityID);
+        if (stations == null) {
             throw new BusinessException(ResultCodeEnum.QUERY_ERROR);
         }
-        return StationConvert.convertToVO(station);
+        List<StationVO> stationVOList = new ArrayList<>();
+        for(Station station: stations) {
+            StationVO stationVO = StationConvert.convertToVO(station);
+            stationVOList.add(stationVO);
+        }
+        return stationVOList;
     }
+
+//    @Override
+//    public List<StationVO> stationQueryAll(Integer cityID) {
+//        List<Station> stations = stationMapper.stationQuery(null, cityID);
+//        if(stations == null) {
+//            throw new BusinessException(ResultCodeEnum.QUERY_ERROR);
+//        }
+//        List<StationVO> stationVOList = new ArrayList<>();
+//        for(Station station: stations) {
+//            StationVO stationVO = StationConvert.convertToVO(station);
+//            stationVOList.add(stationVO);
+//        }
+//        return stationVOList;
+//    }
 
     @Override
     @Transactional

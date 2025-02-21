@@ -6,6 +6,8 @@ import com.example.wayhome.entity.Station;
 import com.example.wayhome.vo.StationVO;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.List;
+
 public interface StationService extends IService<Station> {
 
     /**
@@ -16,7 +18,12 @@ public interface StationService extends IService<Station> {
     /**
      * 根据站点名称返回站点信息
      */
-    StationVO stationQuery(String staName);
+    List<StationVO> stationQuery(String staName, Integer cityID);
+
+//    /**
+//     * 搜寻出所有的站点信息
+//     */
+//    List<StationVO> stationQueryAll(Integer cityID);
 
     /**
      * 对站点信息进行更新

@@ -1,6 +1,5 @@
 package com.example.wayhome.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -10,6 +9,8 @@ import java.time.LocalDateTime;
 public class PointDTO {
 
     private Long pointID;
+
+    private Long staID;
 
     @NotNull
     private Double pointLng;

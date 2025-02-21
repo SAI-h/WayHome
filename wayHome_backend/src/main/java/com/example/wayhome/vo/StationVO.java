@@ -1,5 +1,6 @@
 package com.example.wayhome.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,8 @@ public class StationVO {
 
     private String staAddress;
 
+    private Long pointID;
+
     private Double staLng;
 
     private Double staLat;
@@ -22,6 +25,6 @@ public class StationVO {
 
     private Integer cityID;
 
-    private LocalTime editTime;
-
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime editTime;
 }
