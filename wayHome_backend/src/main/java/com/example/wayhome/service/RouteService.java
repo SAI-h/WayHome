@@ -15,4 +15,8 @@ public interface RouteService extends IService<Route> {
     void routeInsert(RouteDTO routeDTO);
 
     List<RouteVO> routeQuery(String routeName, Integer cityID);
+
+    void routeUpdate(RouteDTO routeDTO);
+
+    void routeDelete(Long routeID);
 }

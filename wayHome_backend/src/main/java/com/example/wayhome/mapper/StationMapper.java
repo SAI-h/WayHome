@@ -39,4 +39,10 @@ public interface StationMapper extends BaseMapper<Station> {
     })
     List<Station> stationQuery(@Param("staName") String staName, @Param("cityID") Integer cityID);
 
+    @Update("UPDATE station s " +
+            "LEFT JOIN route_point rp ON rp.pointID = s.pointID " +
+            "SET s.isDeleted = 1 " +
+            "WHERE rp.pointID IS NULL " +
+            "AND s.staID = #{staID}")
+    int stationDelete(@Param("staID") Long staID);
 }

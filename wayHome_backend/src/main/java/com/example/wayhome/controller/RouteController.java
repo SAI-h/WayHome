@@ -32,4 +32,16 @@ public class RouteController {
         return Result.ok(routeVOS);
     }
 
+    @PatchMapping
+    public Result<?> routeUpdate(@Valid @RequestBody RouteDTO routeDTO) {
+        routeService.routeUpdate(routeDTO);
+        return Result.ok(null);
+    }
+
+    @DeleteMapping("/{routeID}")
+    public Result<?> routeDelete(@NotNull @PathVariable("routeID") Long routeID) {
+        routeService.routeDelete(routeID);
+        return Result.ok(null);
+    }
+
 }

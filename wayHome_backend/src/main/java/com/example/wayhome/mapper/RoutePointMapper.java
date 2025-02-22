@@ -29,4 +29,5 @@ public interface RoutePointMapper extends BaseMapper<RoutePoint> {
                 "AND rp.isDeleted = 0" +
             "</script>")
     List<PointVO> pointInRouteQuery(List<Long> routeIDList);
+
 }

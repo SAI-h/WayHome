@@ -17,7 +17,8 @@ public enum ResultCodeEnum {
     LOGIN_ERROR(501,"loginFailed"),
     INSERT_ERROR(601, "insertFailed"),
     QUERY_ERROR(602, "queryFailed"),
-    UPDATE_ERROR(603, "updateFailed");
+    UPDATE_ERROR(603, "updateFailed"),
+    DELETE_ERROR(604, "deleteFailed");
 
     private final Integer code;
     private final String message;

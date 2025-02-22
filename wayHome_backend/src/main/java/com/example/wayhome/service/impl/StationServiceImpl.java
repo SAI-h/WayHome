@@ -118,7 +118,15 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
     @Override
     @Transactional
     public void stationDelete(Long staID, Long pointID) {
-        stationMapper.deleteById(staID);
-        pointMapper.deleteById(pointID);
+        // 保证站点和线路不存在绑定关系时才能进行删除
+        int resStationDelete = stationMapper.stationDelete(staID);
+//        int resStationDelete = stationMapper.deleteById(staID);
+        if(resStationDelete == 0) {
+            throw new BusinessException(ResultCodeEnum.DELETE_ERROR);
+        }
+        int resPointDelete = pointMapper.deleteById(pointID);
+        if (resPointDelete == 0) {
+            throw new BusinessException(ResultCodeEnum.DELETE_ERROR);
+        }
     }
 }

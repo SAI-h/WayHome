@@ -53,10 +53,12 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
         List<PointDTO> drawPoints = points.stream().filter(point -> point.getPointID() == null).toList();
 
         // 批量插入绘图点集(pointID为空的才需要插入)
-        int resPointInsert = pointMapper.insertBatch(drawPoints);
+        if(!drawPoints.isEmpty()) {
+            int resPointInsert = pointMapper.insertBatch(drawPoints);
 
-        if(resPointInsert != drawPoints.size()) {
-            throw new BusinessException(ResultCodeEnum.INSERT_ERROR);
+            if (resPointInsert != drawPoints.size()) {
+                throw new BusinessException(ResultCodeEnum.INSERT_ERROR);
+            }
         }
 
         int drawPointIdx = 0;
@@ -111,5 +113,77 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
         }
 
         return routeVOList;
+    }
+
+    @Override
+    @Transactional
+    public void routeUpdate(RouteDTO routeDTO) {
+        // 更新线路信息
+        LambdaUpdateWrapper<Route> routeLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        routeLambdaUpdateWrapper.eq(Route::getRouteID, routeDTO.getRouteID())
+                .set(Route::getRouteName, routeDTO.getRouteName())
+                .set(StringUtils.isNotBlank(routeDTO.getRemarks()), Route::getRemarks, routeDTO.getRemarks())
+                .set(Route::getEditTime, routeDTO.getEditTime());
+        routeMapper.update(routeLambdaUpdateWrapper);
+
+        // 删除原有线路和绘制点之间的联系
+        LambdaUpdateWrapper<RoutePoint> routePointLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        routePointLambdaUpdateWrapper.eq(RoutePoint::getRouteID, routeDTO.getRouteID())
+                .set(RoutePoint::getIsDeleted, true);
+        int resRoutePointDelete = routePointMapper.update(routePointLambdaUpdateWrapper);
+        if(resRoutePointDelete == 0) {
+            throw new BusinessException(ResultCodeEnum.UPDATE_ERROR);
+        }
+
+        // 重新建立路线和绘制点之间的联系
+        List<PointDTO> points = routeDTO.getPoints();
+
+        List<PointDTO> newDrawPoints = points.stream().filter(point -> point.getPointID() == null).toList();
+        if(!newDrawPoints.isEmpty()) {
+            int resPointInsert = pointMapper.insertBatch(newDrawPoints);
+            if(resPointInsert != newDrawPoints.size()) {
+                throw new BusinessException(ResultCodeEnum.UPDATE_ERROR);
+            }
+        }
+        int newDrawPointIdx = 0;
+        for (PointDTO point : points) {
+            if(point.getPointID() == null) {
+                point.setPointID(newDrawPoints.get(newDrawPointIdx).getPointID());
+                newDrawPointIdx++;
+            }
+        }
+
+        // 向route_point表插入数据
+        List<RoutePoint> routePoints = new ArrayList<>();
+        for (PointDTO point : points) {
+            RoutePoint routePoint = new RoutePoint();
+            routePoint.setRouteID(routeDTO.getRouteID());
+            routePoint.setPointID(point.getPointID());
+            routePoint.setEditTime(routeDTO.getEditTime());
+            routePoints.add(routePoint);
+        }
+
+        int resRoutePointInsert = routePointMapper.insertBatch(routePoints);
+        if(resRoutePointInsert != routePoints.size()) {
+            throw new BusinessException(ResultCodeEnum.UPDATE_ERROR);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void routeDelete(Long routeID) {
+        // 逻辑删除线路和绘制点关联信息
+        LambdaUpdateWrapper<RoutePoint> routePointLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        routePointLambdaUpdateWrapper.eq(RoutePoint::getRouteID, routeID)
+                .set(RoutePoint::getIsDeleted, true);
+        int resRoutePointDelete = routePointMapper.update(routePointLambdaUpdateWrapper);
+        if(resRoutePointDelete == 0) {
+            throw new BusinessException(ResultCodeEnum.DELETE_ERROR);
+        }
+        // 逻辑删除线路信息
+        int resRouteDelete = routeMapper.deleteById(routeID);
+        if(resRouteDelete == 0) {
+            throw new BusinessException(ResultCodeEnum.DELETE_ERROR);
+        }
     }
 }
