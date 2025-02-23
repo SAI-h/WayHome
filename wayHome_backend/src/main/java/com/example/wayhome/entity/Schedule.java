@@ -30,10 +30,16 @@ public class Schedule {
     private Route route;
 
     @TableField("workdays")
-    private Map<String, Boolean> workdays;
+    private String workdays;
 
     @TableField("editTime")
     private LocalDateTime editTime;
+
+    @TableField("direction")
+    private Boolean direction;
+
+    @TableField("remarks")
+    private String remarks;
 
     @TableField("isDeleted")
     @TableLogic

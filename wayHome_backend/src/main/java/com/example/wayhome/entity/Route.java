@@ -1,13 +1,9 @@
 package com.example.wayhome.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.List;
-import java.util.Map;
 
 @Data
 @TableName("route")
@@ -32,6 +28,6 @@ public class Route {
     @TableLogic
     private Boolean isDeleted;
 
-    @TableField(exist = false)
-    private List<Schedule> schedules;
+//    @TableField(exist = false)
+//    private List<Schedule> schedules;
 }

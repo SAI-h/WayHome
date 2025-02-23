@@ -10,9 +10,9 @@ import java.util.List;
 public interface RoutePointMapper extends BaseMapper<RoutePoint> {
 
     @Insert("<script>" +
-                "INSERT INTO route_point (routeID, pointID) VALUES " +
+                "INSERT INTO route_point (routeID, pointID, editTime) VALUES " +
                 "<foreach collection='routePoints' item='routePoint' separator=','>" +
-                    "(#{routePoint.routeID}, #{routePoint.pointID})" +
+                    "(#{routePoint.routeID}, #{routePoint.pointID}, #{routePoint.editTime})" +
                 "</foreach>" +
             "</script>")
     int insertBatch(@Param("routePoints") List<RoutePoint> routePoints);
