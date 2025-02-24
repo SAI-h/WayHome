@@ -46,8 +46,12 @@ import moment from 'moment'
 const ERROR = 404;
 const SUCCESS = 200;
 const FAILURE = 202;
+const EXPIRE = 702;
 // const BASE = "http://49.235.138.213:3000";
 const BASE = "http://localhost:3000";
+
+// const jwt = localStorage.getItem('jwt');
+// axios.defaults.headers.common['Authorization'] = jwt;
 
 export default {
     name:'newStation',
@@ -146,7 +150,12 @@ export default {
                             cityID: JSON.parse(sessionStorage.getItem('city')).id
                         };
                         // console.log(args);
-                        axios.post(`${BASE}/station`, args).then(
+                        axios.post(`${BASE}/station`, args, 
+                        {
+                            headers: {
+                                'Authorization': localStorage.getItem('jwt')
+                            }
+                        }).then(
                             res => {
                                 if(res.data.code == SUCCESS) {
                                     MessageBox.alert("新建公交站点成功！", "提示信息");
@@ -157,6 +166,12 @@ export default {
                                     this.stationInfo.stationPosition.lat = "";
                                     this.stationInfo.remarks = "";
                                     this.$bus.$emit("loadTable");
+                                }
+                                else if(res.data.code === EXPIRE) {
+                                    MessageBox.alert("用户登录已过期！", "提示信息");
+                                    localStorage.clear();
+                                    sessionStorage.clear();
+                                    this.$router.replace('/login');
                                 }
                                 else {
                                     MessageBox.alert(`新建公交站点失败！\n错误信息为:${res.data.error}`, "提示信息");

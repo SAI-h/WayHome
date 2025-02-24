@@ -63,9 +63,12 @@ export default {
             await axios.post(`${BASE}/admin`, args).then(
                 res => {
                     if(res.data.code === SUCCESS) {
+                        localStorage.setItem('jwt', res.data.data);                        
                         this.$router.replace({
                             name: 'home',
-                            params: res.data.data
+                            params: {
+                                jwt: res.data.data
+                            }
                         })
                     }
                     else if(res.data.code === FAILURE) {

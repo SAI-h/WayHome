@@ -18,7 +18,11 @@ public enum ResultCodeEnum {
     INSERT_ERROR(601, "insertFailed"),
     QUERY_ERROR(602, "queryFailed"),
     UPDATE_ERROR(603, "updateFailed"),
-    DELETE_ERROR(604, "deleteFailed");
+    DELETE_ERROR(604, "deleteFailed"),
+    Signature_Exception(701, "Invalid JWT signature"),
+    Expired_JwtException(702, "Expired JWT token"),
+    AlgorithmMismatch_Exception(703, "Algorithm mismatch wrong"),
+    Jwt_Exception(704, "JWT token error");
 
     private final Integer code;
     private final String message;

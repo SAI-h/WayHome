@@ -46,8 +46,12 @@ import BusRoutes from './busRoutes.vue'
 import Schedule from './schedule.vue'
 const ERROR = 404;
 const SUCCESS = 200;
+const EXPIRE = 702;
 // const BASE = "http://49.235.138.213:3000";
 const BASE = "http://localhost:3000";
+
+// const jwt = localStorage.getItem('jwt');
+// axios.defaults.headers.common['Authorization'] = jwt;
 
 export default {
     name: 'home',
@@ -78,18 +82,24 @@ export default {
                 this.$router.replace('/login'); 
             }
             else {
-                let data = this.$route.params;
+                let jwt = this.$route.params.jwt;
+                const base64Url = jwt.split('.')[1]; 
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                let body = JSON.parse(jsonPayload);
 
                 if(sessionStorage.getItem('admin') === null) {
                     sessionStorage.setItem('admin', JSON.stringify({
-                        account: data.account
+                        adminID: body.adminID,
                     }));
                 }
 
                 if(sessionStorage.getItem('city') === null) {
-                    this.city.id = data.city.cityID;
-                    this.city.name = data.city.cityName;
-                    this.city.lngLat = [data.city.cityLng, data.city.cityLat];
+                    this.city.id = body.cityID;
+                    this.city.name = body.cityName;
+                    this.city.lngLat = [body.cityLng, body.cityLat];
                     if(this.city.name !== '') {
                         sessionStorage.setItem('city', JSON.stringify(this.city));
                         this.selection = '1-1';
@@ -109,6 +119,7 @@ export default {
             )
             .then(
                 () => {
+                    localStorage.clear();
                     sessionStorage.clear();
                     this.$router.replace('/login');
                 }

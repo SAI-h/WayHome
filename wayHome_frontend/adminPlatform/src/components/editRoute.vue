@@ -77,10 +77,14 @@ import moment from 'moment'
 const ERROR = 404;
 const SUCCESS = 200;
 const FAILURE = 202;
+const EXPIRE = 702;
 const CONTROL_POINT = -1;
 const STATION_POINT = 0;
 // const BASE = "http://49.235.138.213:3000";
 const BASE = "http://localhost:3000";
+
+// const jwt = localStorage.getItem('jwt');
+// axios.defaults.headers.common['Authorization'] = jwt;
 
 export default {
     name: "editRoute",
@@ -140,12 +144,21 @@ export default {
             axios.get(`${BASE}/station`, {
                 params: {
                     cityID: JSON.parse(sessionStorage.getItem('city')).id
+                }, 
+                headers: {
+                    Authorization: localStorage.getItem('jwt')
                 }
             }).then(
                 res => {
                     if(res.data.code === SUCCESS) {
                         this.stationList = res.data.data;
                     }
+                    else if(res.data.code === EXPIRE) {
+                            MessageBox.alert("用户登录已过期！", "提示信息");
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            this.$router.replace('/login');
+                        }
                     else {
                         MessageBox.alert(`表单初始化失败！\n错误信息为:${res.data.message}`, "提示信息");
                     }
@@ -194,11 +207,21 @@ export default {
 
 
                     
-                        axios.patch(`${BASE}/route`, args).then(
+                        axios.patch(`${BASE}/route`, args, {
+                            headers: {
+                                'Authorization': localStorage.getItem('jwt')  // 在请求头中加上 Authorization 字段
+                            }
+                        }).then(
                             res => {
                                 if(res.data.code == SUCCESS) {
                                     MessageBox.alert("更新公交路线成功！", "提示信息");
                                     this.$bus.$emit("changeEdit");
+                                }
+                                else if(res.data.code === EXPIRE) {
+                                    MessageBox.alert("用户登录已过期！", "提示信息");
+                                    localStorage.clear();
+                                    sessionStorage.clear();
+                                    this.$router.replace('/login');
                                 }
                                 else {
                                     MessageBox.alert(`更新公交路线失败！\n错误信息为:${res.data.message}`, "提示信息");

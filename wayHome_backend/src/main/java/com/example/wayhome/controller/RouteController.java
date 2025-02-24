@@ -1,5 +1,6 @@
 package com.example.wayhome.controller;
 
+import com.example.wayhome.config.JwtAdminConfig;
 import com.example.wayhome.dto.RouteDTO;
 import com.example.wayhome.service.RouteService;
 import com.example.wayhome.utils.Result;

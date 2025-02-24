@@ -63,8 +63,12 @@ import moment from 'moment'
 const ERROR = 404;
 const SUCCESS = 200;
 const FAILURE = 202;
+const EXPIRE = 702;
 // const BASE = "http://49.235.138.213:3000";
 const BASE = "http://localhost:3000";
+
+// const jwt = localStorage.getItem('jwt');
+// axios.defaults.headers.common['Authorization'] = jwt;
 
 export default {
     name: "scheduleUpdate",
@@ -187,12 +191,22 @@ export default {
                         console.log(args);
 
 
-                        axios.patch(`${BASE}/schedule`, args)
+                        axios.patch(`${BASE}/schedule`, args, {
+                            headers: {
+                                Authorization: localStorage.getItem('jwt')
+                            }
+                        })
                         .then(
                             res => {
                                 if(res.data.code === SUCCESS) {
                                     MessageBox.alert("班次信息更新成功！", "提示信息");
                                     this.$bus.$emit("changeStatus", 'scheduleShow');
+                                }
+                                else if(res.data.code === EXPIRE) {
+                                    MessageBox.alert("用户登录已过期！", "提示信息");
+                                    localStorage.clear();
+                                    sessionStorage.clear();
+                                    this.$router.replace('/login');
                                 }
                                 else {
                                     MessageBox.alert(`班次信息更新失败！\n错误信息为:${res.data.message}`, "提示信息");

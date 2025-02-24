@@ -88,8 +88,12 @@ import { MessageBox } from 'element-ui';
 
 const ERROR = 404;
 const SUCCESS = 200;
+const EXPIRE = 702;
 // const BASE = "http://49.235.138.213:3000";
 const BASE = "http://localhost:3000";
+
+// const jwt = localStorage.getItem('jwt');
+// axios.defaults.headers.common['Authorization'] = jwt;
 
 export default {
     name:'stations',
@@ -137,14 +141,25 @@ export default {
             this.choice = tag;
         },
         loadTable() { // 加载表格
-            axios.get(`${BASE}/station`, {
-                params: {
-                    cityID: JSON.parse(sessionStorage.getItem('city')).id
+            axios.get(`${BASE}/station`, 
+                {
+                    params: {
+                        cityID: JSON.parse(sessionStorage.getItem('city')).id
+                    },
+                    headers: {
+                        Authorization: localStorage.getItem('jwt')
+                    }
                 }
-            }).then(
+            ).then(
                 res => {
                     if(res.data.code === SUCCESS) {
                         this.tableData = res.data.data;
+                    }
+                    else if(res.data.code === EXPIRE) {
+                        MessageBox.alert("用户登录已过期！", "提示信息");
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        this.$router.replace('/login');
                     }
                     else {
                         MessageBox.alert(`表单初始化失败！\n错误信息为:${res.data.message}`, "提示信息");
@@ -184,7 +199,10 @@ export default {
 
                 // 不存在绑定关系,则直接删除
                 axios.delete(`${BASE}/station`, {
-                    params: args
+                    params: args,
+                    headers: {
+                        Authorization: localStorage.getItem('jwt')
+                    }
                 })
                 .then(
                     res => {
@@ -194,9 +212,15 @@ export default {
                             this.loadTable(); // 重新加载表单数据
                             // this.stationInfo = {};
                         }
+                        else if(res.data.code === EXPIRE) {
+                            MessageBox.alert("用户登录已过期！", "提示信息");
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            this.$router.replace('/login');
+                        }
                         else {
                             MessageBox.alert(`站点删除操作失败！\n 请检查该站点是否绑定线路！ \n错误信息为:${res.data.message}`, "提示信息");
-                        }
+                        } 
                     }
                 )
                 .catch(
@@ -275,12 +299,22 @@ export default {
                             editTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
                             cityID: JSON.parse(sessionStorage.getItem('city')).id
                         };
-                        axios.patch(`${BASE}/station`, args).then(
+                        axios.patch(`${BASE}/station`, args, {
+                            headers: {
+                                Authorization: localStorage.getItem('jwt')
+                            }
+                        }).then(
                             res => {
                                 if(res.data.code === SUCCESS) {
                                     MessageBox.alert("更新公交站点成功！", "提示信息");
                                     this.isEdit = false; // 重置为非编辑状态
                                     this.loadTable(); // 重载表单
+                                }
+                                else if(res.data.code === EXPIRE) {
+                                    MessageBox.alert("用户登录已过期！", "提示信息");
+                                    localStorage.clear();
+                                    sessionStorage.clear();
+                                    this.$router.replace('/login');
                                 }
                                 else {
                                     MessageBox.alert(`更新公交站点失败！\n错误信息为:${res.data.error}`, "提示信息");

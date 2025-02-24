@@ -15,3 +15,8 @@ server:
   servlet:
     context-path: /
 
+
+jwt:
+  secret: w208Fj3!sVx@ay9qL$ZmP&7dT*KgW_25ho#2rY^CbNme
+  expiration: 60
+

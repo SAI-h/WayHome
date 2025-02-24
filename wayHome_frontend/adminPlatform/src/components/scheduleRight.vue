@@ -63,8 +63,12 @@ import moment from 'moment'
 const ERROR = 404;
 const SUCCESS = 200;
 const FAILURE = 202;
+const EXPIRE = 702;
 // const BASE = "http://49.235.138.213:3000";
 const BASE = "http://localhost:3000";
+
+// const jwt = localStorage.getItem('jwt');
+// axios.defaults.headers.common['Authorization'] = jwt;
 
 export default {
     name: "scheduleRight",
@@ -98,7 +102,11 @@ export default {
             //     routeID: ,
             //     // cityID: JSON.parse(sessionStorage.getItem('city')).id
             // }
-            axios.get(`${BASE}/schedule/${this.pathInfo.routeID}`)
+            axios.get(`${BASE}/schedule/${this.pathInfo.routeID}`, {
+                headers: {
+                    Authorization: localStorage.getItem('jwt')
+                }
+            })
             .then(
                 res => {
                     if(res.data.code === SUCCESS) {
@@ -116,6 +124,12 @@ export default {
                             }
                         })
                     }
+                    else if(res.data.code === EXPIRE) {
+                            MessageBox.alert("用户登录已过期！", "提示信息");
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            this.$router.replace('/login');
+                        }
                     else {
                         MessageBox.alert(`班次获取失败！\n错误信息为:${res.data.message}`, "提示信息");
                     }
@@ -140,7 +154,11 @@ export default {
                 cancelButtonText: '取消',
             })
             .then(() => {
-                axios.delete(`${BASE}/schedule/${schedule.scheduleID}`)
+                axios.delete(`${BASE}/schedule/${schedule.scheduleID}`, {
+                    headers: {
+                        Authorization: localStorage.getItem('jwt')
+                    }
+                })
                 .then(
                     res => {
                         if(res.data.code === SUCCESS) {

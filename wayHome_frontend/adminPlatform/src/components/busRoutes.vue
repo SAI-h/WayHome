@@ -54,8 +54,12 @@ import { MessageBox } from 'element-ui';
 
 const ERROR = 404;
 const SUCCESS = 200;
+const EXPIRE = 702;
 // const BASE = "http://49.235.138.213:3000";
 const BASE = "http://localhost:3000";
+
+// const jwt = localStorage.getItem('jwt');
+// axios.defaults.headers.common['Authorization'] = jwt;
 
 export default {
     name:'busRoutes',
@@ -91,8 +95,16 @@ export default {
             let args = {
                 cityID: JSON.parse(sessionStorage.getItem('city')).id
             };
-            axios.get(`${BASE}/route`, {params:args}).then(
+            axios.get(`${BASE}/route`,
+                {
+                    params:args,
+                    headers: {
+                        Authorization: localStorage.getItem('jwt')
+                    }
+                }
+            ).then(
                 res => {
+                    // console.log(res);
                     if(res.data.code === SUCCESS) {
                         let msg = res.data.data;
                         // console.log(msg);
@@ -147,6 +159,12 @@ export default {
                             else return 0;
                         })
                     }
+                    else if(res.data.code === EXPIRE) {
+                            MessageBox.alert("用户登录已过期！", "提示信息");
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            this.$router.replace('/login');
+                        }
                     else {
                         MessageBox.alert(`表单初始化失败！\n错误信息为:${res.data.message}`, "提示信息");
                     }
@@ -196,11 +214,21 @@ export default {
             })
             .then(
                 () => {
-                    axios.delete(`${BASE}/route/${routeInfo.routeID}`)
+                    axios.delete(`${BASE}/route/${routeInfo.routeID}`, {
+                        headers: {
+                            Authorization: localStorage.getItem('jwt')
+                        }
+                    })
                     .then(res => {
                         if(res.data.code === SUCCESS) {
                             MessageBox.alert("路线删除成功！", "提示信息");
                             this.loadTable();
+                        }
+                        else if(res.data.code === EXPIRE) {
+                            MessageBox.alert("用户登录已过期！", "提示信息");
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            this.$router.replace('/login');
                         }
                         else {
                             MessageBox.alert(`删除公交路线失败！\n错误信息为:${res.data.error}`, "提示信息");
