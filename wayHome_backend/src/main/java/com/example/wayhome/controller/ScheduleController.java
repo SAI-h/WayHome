@@ -31,6 +31,13 @@ public class ScheduleController {
         return Result.ok(scheduleVOS);
     }
 
+    @GetMapping
+    public Result<List<ScheduleVO>> scheduleQueryByName(@NotNull @RequestParam("routeName") String routeName,
+                                                        @NotNull @RequestParam("cityID") Integer cityID) {
+        List<ScheduleVO> scheduleVOS = scheduleService.scheduleQueryByName(routeName, cityID);
+        return Result.ok(scheduleVOS);
+    }
+
     @PatchMapping
     public Result<?> scheduleUpdate(@Valid @RequestBody ScheduleDTO scheduleDTO) {
         scheduleService.scheduleUpdate(scheduleDTO);

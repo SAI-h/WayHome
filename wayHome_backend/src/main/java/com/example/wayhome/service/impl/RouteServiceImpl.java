@@ -1,5 +1,6 @@
 package com.example.wayhome.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.wayhome.convert.RouteConvert;
@@ -14,6 +15,7 @@ import com.example.wayhome.mapper.RoutePointMapper;
 import com.example.wayhome.service.RouteService;
 import com.example.wayhome.utils.ResultCodeEnum;
 import com.example.wayhome.vo.PointVO;
+import com.example.wayhome.vo.RouteQStationVO;
 import com.example.wayhome.vo.RouteVO;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -88,7 +91,15 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
 
     @Override
     @Transactional
-    public List<RouteVO> routeQuery(String routeName, Integer cityID) {
+    public List<?> routeQuery(String routeName, Integer cityID, Boolean lazyLoad) {
+        if (lazyLoad) { // 懒加载，只获取路线名
+            LambdaQueryWrapper<Route> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.select(Route::getRouteName)
+                    .eq(Route::getCityID, cityID);
+            List<Route> routes = routeMapper.selectList(queryWrapper);
+            return routes.stream().map(Route::getRouteName).toList();
+        }
+
         // 查询线路信息
         LambdaUpdateWrapper<Route> routeLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         routeLambdaUpdateWrapper.eq(StringUtils.isNotBlank(routeName), Route::getRouteName, routeName)
@@ -185,5 +196,35 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
         if(resRouteDelete == 0) {
             throw new BusinessException(ResultCodeEnum.DELETE_ERROR);
         }
+    }
+
+    @Override
+    public List<RouteVO> routeQueryByStation(Long staID) {
+        List<RouteQStationVO> routeQStationVOS = routePointMapper.routeQueryByStation(staID);
+//        System.out.println(routeQStationVOS);
+        Map<Long, RouteVO> routeMap = new HashMap<>();
+        List<RouteVO> routeVOS = new ArrayList<>();
+
+        for(RouteQStationVO routeQStationVO : routeQStationVOS) {
+            Long routeID = routeQStationVO.getRouteID();
+            RouteVO routeVO = routeMap.get(routeID);
+            if(routeVO == null) {
+                routeVO = new RouteVO();
+                routeVO.setRouteID(routeQStationVO.getRouteID());
+                routeVO.setRouteName(routeQStationVO.getRouteName());
+                routeVO.setPoints(new ArrayList<>());
+                routeVOS.add(routeVO);
+                routeMap.put(routeID, routeVO);
+            }
+            PointVO pointVO = new PointVO();
+            pointVO.setPointID(routeQStationVO.getPointID());
+            pointVO.setPointLat(routeQStationVO.getPointLat());
+            pointVO.setPointLng(routeQStationVO.getPointLng());
+            pointVO.setStaID(routeQStationVO.getStaID());
+            pointVO.setStaName(routeQStationVO.getStaName());
+            routeVO.getPoints().add(pointVO);
+        }
+
+        return routeVOS;
     }
 }

@@ -27,10 +27,17 @@ public class RouteController {
     }
 
     @GetMapping
-    public Result<List<RouteVO>> routeQuery(@RequestParam(value = "routeName", required = false) String routeName,
-                                            @NotNull @RequestParam("cityID") Integer cityID) {
-        List<RouteVO> routeVOS = routeService.routeQuery(routeName, cityID);
-        return Result.ok(routeVOS);
+    public Result<?> routeQuery(@RequestParam(value = "routeName", required = false) String routeName,
+                                            @NotNull @RequestParam("cityID") Integer cityID,
+                                            @RequestParam(value = "lazyLoad", defaultValue = "false") Boolean lazyLoad) {
+        List<?> routes = routeService.routeQuery(routeName, cityID, lazyLoad);
+        return Result.ok(routes);
+    }
+
+    @GetMapping("/{staID}")
+    public Result<List<RouteVO>> routeQueryByStation(@NotNull @PathVariable(value = "staID") Long staID) {
+        List<RouteVO> routes = routeService.routeQueryByStation(staID);
+        return Result.ok(routes);
     }
 
     @PatchMapping

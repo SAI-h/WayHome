@@ -16,4 +16,6 @@ public interface ScheduleService extends IService<Schedule> {
     void scheduleUpdate(ScheduleDTO scheduleDTO);
 
     void scheduleDelete(Long scheduleID);
+
+    List<ScheduleVO> scheduleQueryByName(String routeName, Integer cityID);
 }

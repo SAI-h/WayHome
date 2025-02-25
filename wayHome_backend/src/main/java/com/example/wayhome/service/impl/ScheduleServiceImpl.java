@@ -1,5 +1,6 @@
 package com.example.wayhome.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.wayhome.convert.ScheduleConvert;
@@ -30,16 +31,27 @@ public class ScheduleServiceImpl extends ServiceImpl<ScheduleMapper, Schedule> i
 
     @Override
     public List<ScheduleVO> scheduleQuery(Long routeID) {
-        LambdaUpdateWrapper<Schedule> scheduleLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
-        scheduleLambdaUpdateWrapper.eq(Schedule::getRouteID, routeID)
+        LambdaQueryWrapper<Schedule> scheduleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        scheduleLambdaQueryWrapper.eq(Schedule::getRouteID, routeID)
                 .eq(Schedule::getIsDeleted, false);
-        List<Schedule> schedules = scheduleMapper.selectList(scheduleLambdaUpdateWrapper);
+        List<Schedule> schedules = scheduleMapper.selectList(scheduleLambdaQueryWrapper);
 
         List<ScheduleVO> scheduleVOList = new ArrayList<>();
         for(Schedule schedule : schedules) {
             scheduleVOList.add(ScheduleConvert.ConvertToVO(schedule));
         }
         return scheduleVOList;
+    }
+
+
+    @Override
+    public List<ScheduleVO> scheduleQueryByName(String routeName, Integer cityID) {
+        List<Schedule> schedules = scheduleMapper.queryByName(routeName, cityID);
+        List<ScheduleVO> scheduleVOS = new ArrayList<>();
+        for(Schedule schedule : schedules) {
+            scheduleVOS.add(ScheduleConvert.ConvertToVO(schedule));
+        }
+        return scheduleVOS;
     }
 
     @Override

@@ -14,9 +14,11 @@ public interface RouteService extends IService<Route> {
      */
     void routeInsert(RouteDTO routeDTO);
 
-    List<RouteVO> routeQuery(String routeName, Integer cityID);
+    List<?> routeQuery(String routeName, Integer cityID, Boolean lazyLoad);
 
     void routeUpdate(RouteDTO routeDTO);
 
     void routeDelete(Long routeID);
+
+    List<RouteVO> routeQueryByStation(Long staID);
 }

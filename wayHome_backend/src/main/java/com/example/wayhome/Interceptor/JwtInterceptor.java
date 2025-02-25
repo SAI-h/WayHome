@@ -25,6 +25,10 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // 获取请求来源端口,仅对管理员操作进行拦截
+        if (!"8080".equals(request.getHeader("Origin").split(":")[2])) {
+            return true;
+        }
         String jwtToken = request.getHeader("Authorization");
         Map<String, Object> response_message = new HashMap<>();
         try {
