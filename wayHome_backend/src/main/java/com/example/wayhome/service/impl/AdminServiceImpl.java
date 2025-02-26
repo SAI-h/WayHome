@@ -14,6 +14,7 @@ import com.example.wayhome.utils.ResultCodeEnum;
 import com.example.wayhome.vo.AdminVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements AdminService {
@@ -22,6 +23,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     private AdminMapper adminMapper;
 
     @Override
+    @Transactional
     public AdminVO adminLogin(AdminDTO adminDTO) {
         // 数据加密
         adminDTO.setPassword(MD5Util.encrypt(adminDTO.getPassword()));

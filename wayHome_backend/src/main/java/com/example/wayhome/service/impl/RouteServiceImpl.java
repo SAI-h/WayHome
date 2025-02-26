@@ -199,6 +199,7 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
     }
 
     @Override
+    @Transactional
     public List<RouteVO> routeQueryByStation(Long staID) {
         List<RouteQStationVO> routeQStationVOS = routePointMapper.routeQueryByStation(staID);
 //        System.out.println(routeQStationVOS);

@@ -8,6 +8,9 @@ spring:
       username: root
       password: 123456
       driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      port: 6379
 
 
 server:
@@ -19,4 +22,7 @@ server:
 jwt:
   secret: w208Fj3!sVx@ay9qL$ZmP&7dT*KgW_25ho#2rY^CbNme
   expiration: 60
+
+redis:
+  expiration: 60 * 60 * 24
 

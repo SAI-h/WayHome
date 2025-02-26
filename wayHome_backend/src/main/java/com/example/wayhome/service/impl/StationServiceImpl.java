@@ -14,6 +14,7 @@ import com.example.wayhome.service.StationService;
 import com.example.wayhome.utils.ResultCodeEnum;
 import com.example.wayhome.vo.StationVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,9 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
 
     @Autowired
     private PointMapper pointMapper;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     @Transactional

@@ -11,6 +11,7 @@ import com.example.wayhome.utils.Result;
 import com.example.wayhome.utils.ResultCodeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PointServiceImpl extends ServiceImpl<PointMapper, Point> implements PointService {
@@ -19,6 +20,7 @@ public class PointServiceImpl extends ServiceImpl<PointMapper, Point> implements
     private PointMapper pointMapper;
 
     @Override
+    @Transactional
     public void pointInsert(PointDTO pointDTO) {
         Point point = PointConvert.convertToDO(pointDTO);
         int result = pointMapper.insert(point);
