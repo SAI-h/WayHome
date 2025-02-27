@@ -3,6 +3,7 @@ package com.example.wayhome.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.wayhome.MedianValueSerialization.ListSerialization;
 import com.example.wayhome.convert.RouteConvert;
 import com.example.wayhome.dto.PointDTO;
 import com.example.wayhome.dto.RouteDTO;
@@ -19,13 +20,13 @@ import com.example.wayhome.vo.RouteQStationVO;
 import com.example.wayhome.vo.RouteVO;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +40,13 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
 
     @Autowired
     private RoutePointMapper routePointMapper;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+
+    @Value("${redis.expiration}")
+    private Long expireTime;
 
     @Override
     @Transactional
@@ -93,14 +101,44 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
     @Transactional
     public List<?> routeQuery(String routeName, Integer cityID, Boolean lazyLoad) {
         if (lazyLoad) { // 懒加载，只获取路线名
+            // 缓存读取数据
+            if(redisTemplate.hasKey("routeNameList")) {
+                ListSerialization<String> routeNameList = (ListSerialization<String>) redisTemplate.opsForValue().get("routeNameList");
+                return routeNameList.get_data();
+            }
+
+            // 数据库加载数据
             LambdaQueryWrapper<Route> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.select(Route::getRouteName)
                     .eq(Route::getCityID, cityID);
             List<Route> routes = routeMapper.selectList(queryWrapper);
-            return routes.stream().map(Route::getRouteName).toList();
+            List<String> list = routes.stream().map(Route::getRouteName).toList();
+            ListSerialization<String> listSerialization = new ListSerialization<>();
+            listSerialization.set_data(list);
+            // 同步缓存数据
+            redisTemplate.opsForValue().set("routeNameList", listSerialization);
+            redisTemplate.expire("routeNameList", expireTime, java.util.concurrent.TimeUnit.SECONDS);
+            return list;
         }
 
         // 查询线路信息
+
+        // 先查缓存
+        String routeKey = "route:routeName:" + routeName + "CityID:" + cityID;
+        if ((routeName == null || routeName.isEmpty())) {
+            routeKey = "route:CityID:" + cityID;
+        }
+
+        if(redisTemplate.hasKey(routeKey)) {
+            List<Object> routeList = redisTemplate.opsForList().range(routeKey, 0, -1);
+            List<RouteVO> routeVOList = new ArrayList<>();
+            routeList.forEach(route -> {
+                RouteVO routeVO =  (RouteVO) route;
+                routeVOList.add(routeVO);
+            });
+            return routeVOList;
+        }
+
         LambdaUpdateWrapper<Route> routeLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         routeLambdaUpdateWrapper.eq(StringUtils.isNotBlank(routeName), Route::getRouteName, routeName)
                 .eq(Route::getCityID, cityID)
@@ -121,8 +159,11 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
                 .stream().collect(Collectors.groupingBy(PointVO::getRouteID));
         for(RouteVO routeVO : routeVOList) {
             routeVO.setPoints(groupedByRouteID.get(routeVO.getRouteID()));
+            redisTemplate.opsForList().rightPush(routeKey, routeVO);
         }
-
+        if(!routeVOList.isEmpty()) {
+            redisTemplate.expire(routeKey, expireTime, java.util.concurrent.TimeUnit.SECONDS);
+        }
         return routeVOList;
     }
 
@@ -178,6 +219,22 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
         if(resRoutePointInsert != routePoints.size()) {
             throw new BusinessException(ResultCodeEnum.UPDATE_ERROR);
         }
+
+
+        // 清空缓存
+        Long routeID = routeDTO.getRouteID();
+        List<Object> stations = redisTemplate.opsForList().range("routeStationMap:" + routeID, 0, -1);
+        // 找到和当前route相关的站点的路径
+        stations.forEach(staID -> {
+            String routeStationKey = "route:staID:" + staID;
+            redisTemplate.delete(routeStationKey);
+        });
+        Integer cityID = routeDTO.getCityID();
+        String routeName = routeDTO.getRouteName();
+        String routeKey_1 = "route:routeName:" + routeName + "CityID:" + cityID;
+        String routeKey_2 = "route:CityID:" + cityID;
+        redisTemplate.delete(routeKey_1);
+        redisTemplate.delete(routeKey_2);
     }
 
     @Override
@@ -201,8 +258,19 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
     @Override
     @Transactional
     public List<RouteVO> routeQueryByStation(Long staID) {
+
+        String routeStationKey = "route:staID:" + staID;
+        if(redisTemplate.hasKey(routeStationKey)) {
+            List<Object> routeStation = redisTemplate.opsForList().range(routeStationKey, 0, -1);
+            List<RouteVO> routeVOList = new ArrayList<>();
+            routeStation.forEach(route -> {
+                RouteVO routeVO = (RouteVO) route;
+                routeVOList.add(routeVO);
+            });
+            return routeVOList;
+        }
+
         List<RouteQStationVO> routeQStationVOS = routePointMapper.routeQueryByStation(staID);
-//        System.out.println(routeQStationVOS);
         Map<Long, RouteVO> routeMap = new HashMap<>();
         List<RouteVO> routeVOS = new ArrayList<>();
 
@@ -224,6 +292,16 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
             pointVO.setStaID(routeQStationVO.getStaID());
             pointVO.setStaName(routeQStationVO.getStaName());
             routeVO.getPoints().add(pointVO);
+        }
+
+        if(!routeVOS.isEmpty()) {
+            for(RouteVO routeVO: routeVOS) {
+                redisTemplate.opsForList().rightPush(routeStationKey, routeVO);
+                String routeStationMap = "routeStationMap:" + routeVO.getRouteID();
+                redisTemplate.opsForList().rightPush(routeStationMap, staID);
+                redisTemplate.expire(routeStationMap, expireTime, TimeUnit.SECONDS);
+            }
+            redisTemplate.expire(routeStationKey, expireTime, TimeUnit.SECONDS);
         }
 
         return routeVOS;

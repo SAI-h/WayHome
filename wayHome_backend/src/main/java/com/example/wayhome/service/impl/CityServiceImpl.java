@@ -43,8 +43,8 @@ public class CityServiceImpl extends ServiceImpl<CityMapper, City> implements Ci
         }
 
         List<City> cities = cityMapper.selectList(null);
+        List<CityVO> cityVOS = new ArrayList<>();
         if(!cities.isEmpty()) {
-            List<CityVO> cityVOS = new ArrayList<>();
             for (City city : cities) {
                 CityVO cityVO = CityConvert.convertToVO(city);
                 cityVOS.add(cityVO);
@@ -53,6 +53,6 @@ public class CityServiceImpl extends ServiceImpl<CityMapper, City> implements Ci
             redisTemplate.expire("cityList", expireTime, java.util.concurrent.TimeUnit.SECONDS);
             return cityVOS;
         }
-        return null;
+        return cityVOS;
     }
 }
