@@ -87,6 +87,7 @@ public class ScheduleServiceImpl extends ServiceImpl<ScheduleMapper, Schedule> i
     public void scheduleInsert(ScheduleDTO scheduleDTO) {
         Schedule schedule = ScheduleConvert.ConvertToDO(scheduleDTO);
         scheduleMapper.insert(schedule);
+        redisTemplate.delete("schedule:routeID:" + scheduleDTO.getRouteID());
     }
 
     @Override

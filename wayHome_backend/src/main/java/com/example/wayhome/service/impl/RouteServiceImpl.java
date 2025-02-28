@@ -320,6 +320,7 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
             routeVO.getPoints().add(pointVO);
         }
 
+
         if(!routeVOS.isEmpty()) {
             for(RouteVO routeVO: routeVOS) {
                 redisTemplate.opsForList().rightPush(routeStationKey, routeVO);

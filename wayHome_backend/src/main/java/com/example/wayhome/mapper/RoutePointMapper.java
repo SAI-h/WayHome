@@ -35,7 +35,7 @@ public interface RoutePointMapper extends BaseMapper<RoutePoint> {
             "FROM route r " +
             "JOIN route_point rp ON rp.routeID = r.routeID " +
             "JOIN Point p on p.pointID = rp.pointID " +
-            "JOIN Station s on s.pointID = p.pointID " +
+            "LEFT JOIN Station s on s.pointID = p.pointID " +
             "WHERE EXISTS (" +
             "    SELECT 1 " +
             "    FROM route_point rp2 " +
