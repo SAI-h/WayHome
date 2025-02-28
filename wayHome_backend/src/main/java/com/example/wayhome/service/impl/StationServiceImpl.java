@@ -1,6 +1,5 @@
 package com.example.wayhome.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.wayhome.convert.StationConvert;
@@ -14,12 +13,15 @@ import com.example.wayhome.service.StationService;
 import com.example.wayhome.utils.ResultCodeEnum;
 import com.example.wayhome.vo.StationVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -33,6 +35,9 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Value("${redis.expiration}")
+    private Long expireTime;
 
     @Override
     @Transactional
@@ -67,18 +72,40 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
         if(resPointUpdate != 1) {
             throw new BusinessException(ResultCodeEnum.INSERT_ERROR);
         }
+
+        // 删除缓存
+        redisTemplate.delete("station:cityID:" + stationDTO.getCityID());
     }
 
     @Override
     public List<StationVO> stationQuery(String staName, Integer cityID) {
+        String stationKey = "station:staName:" + staName + "cityID:" + cityID;
+        if(staName == null) {
+            stationKey = "station:cityID:" + cityID;
+        }
+        if(redisTemplate.hasKey(stationKey)) {
+            List<Object> stationObjs = redisTemplate.opsForList().range(stationKey, 0, -1);
+            List<StationVO> stationVOList = new ArrayList<>();
+            stationObjs.forEach(stationObj -> {
+                stationVOList.add((StationVO) stationObj);
+            });
+            return stationVOList;
+        }
+
         List<Station> stations = stationMapper.stationQuery(staName, cityID);
         if (stations == null) {
             throw new BusinessException(ResultCodeEnum.QUERY_ERROR);
         }
         List<StationVO> stationVOList = new ArrayList<>();
-        for(Station station: stations) {
-            StationVO stationVO = StationConvert.convertToVO(station);
-            stationVOList.add(stationVO);
+        if(!stations.isEmpty()) {
+            for (Station station : stations) {
+                StationVO stationVO = StationConvert.convertToVO(station);
+                stationVOList.add(stationVO);
+                redisTemplate.opsForList().rightPush(stationKey, stationVO);
+                redisTemplate.opsForValue().set("stationMap:staID:" + station.getStaID(), station.getStaName() + ":" + station.getCityID());
+                redisTemplate.expire("stationMap:staID:" + station.getStaID(), expireTime, TimeUnit.SECONDS);
+            }
+            redisTemplate.expire(stationKey, expireTime, java.util.concurrent.TimeUnit.SECONDS);
         }
         return stationVOList;
     }
@@ -117,6 +144,19 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
                 .set(Station::getEditTime, station.getEditTime())
                 .set(Station::getRemarks, station.getRemarks());
         stationMapper.update(stationLambdaUpdateWrapper);
+
+        // 删除缓存
+        String stationDelKey_1 = "station:staName:" + stationDTO.getStaName() + "cityID:" + stationDTO.getCityID();
+        String stationDelKey_2 = "station:cityID:" + stationDTO.getCityID();
+        redisTemplate.delete(stationDelKey_1);
+        redisTemplate.delete(stationDelKey_2);
+        redisTemplate.delete("stationMap:staID:" + stationDTO.getStaID());
+
+        // 清除和线路的关联信息缓存
+        Set<String> keys = redisTemplate.keys("route*");
+        if(keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
     }
 
     @Override
@@ -132,5 +172,15 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
         if (resPointDelete == 0) {
             throw new BusinessException(ResultCodeEnum.DELETE_ERROR);
         }
+
+        // 删除缓存(不用删除route的全部缓存是因为,若站点和route绑定无法完成删除操作)
+        // 能删除的站点,一定和路线不存在关系
+        String nameCityObj = (String) redisTemplate.opsForValue().get("stationMap:staID:" + staID);
+        String[] split = nameCityObj.split(":");
+        String stationDelKey_1 = "station:staName:" + split[0] + "cityID:" + split[1];
+        String stationDelKey_2 = "station:cityID:" + split[1];
+        redisTemplate.delete(stationDelKey_1);
+        redisTemplate.delete(stationDelKey_2);
+        redisTemplate.delete("stationMap:staID:" + staID);
     }
 }

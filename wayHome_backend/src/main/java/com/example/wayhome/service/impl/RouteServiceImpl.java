@@ -95,6 +95,15 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
         if(resRoutePointInsert != routePoints.size()) {
             throw new BusinessException(ResultCodeEnum.INSERT_ERROR);
         }
+
+        // 清理缓存
+        routeDTO.getPoints().forEach(pointDTO -> {
+            Long staID = pointDTO.getStaID();
+            if (staID != null) { // 是站点
+                redisTemplate.delete("routeStationMap:" + staID);
+            }
+        });
+        redisTemplate.delete("route:cityID:" + routeDTO.getCityID());
     }
 
     @Override
@@ -124,9 +133,9 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
         // 查询线路信息
 
         // 先查缓存
-        String routeKey = "route:routeName:" + routeName + "CityID:" + cityID;
+        String routeKey = "route:routeName:" + routeName + "cityID:" + cityID;
         if ((routeName == null || routeName.isEmpty())) {
-            routeKey = "route:CityID:" + cityID;
+            routeKey = "route:cityID:" + cityID;
         }
 
         if(redisTemplate.hasKey(routeKey)) {
@@ -159,6 +168,7 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
                 .stream().collect(Collectors.groupingBy(PointVO::getRouteID));
         for(RouteVO routeVO : routeVOList) {
             routeVO.setPoints(groupedByRouteID.get(routeVO.getRouteID()));
+            redisTemplate.opsForValue().set("routeMap:routeID:" + routeVO.getRouteID(), routeVO.getRouteName() + ":" + routeVO.getCityID());
             redisTemplate.opsForList().rightPush(routeKey, routeVO);
         }
         if(!routeVOList.isEmpty()) {
@@ -231,15 +241,22 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
         });
         Integer cityID = routeDTO.getCityID();
         String routeName = routeDTO.getRouteName();
-        String routeKey_1 = "route:routeName:" + routeName + "CityID:" + cityID;
-        String routeKey_2 = "route:CityID:" + cityID;
+        String routeKey_1 = "route:routeName:" + routeName + "cityID:" + cityID;
+        String routeKey_2 = "route:cityID:" + cityID;
         redisTemplate.delete(routeKey_1);
         redisTemplate.delete(routeKey_2);
+        redisTemplate.delete("routeMap:routeID:" + routeID);
+        redisTemplate.delete("routeMap:routeName:" + routeName + "cityID:" + cityID);
     }
 
     @Override
     @Transactional
     public void routeDelete(Long routeID) {
+        // 逻辑删除线路信息
+        int resRouteDelete = routeMapper.routeDelete(routeID);
+        if(resRouteDelete == 0) {
+            throw new BusinessException(ResultCodeEnum.DELETE_ERROR);
+        }
         // 逻辑删除线路和绘制点关联信息
         LambdaUpdateWrapper<RoutePoint> routePointLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         routePointLambdaUpdateWrapper.eq(RoutePoint::getRouteID, routeID)
@@ -248,11 +265,20 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
         if(resRoutePointDelete == 0) {
             throw new BusinessException(ResultCodeEnum.DELETE_ERROR);
         }
-        // 逻辑删除线路信息
-        int resRouteDelete = routeMapper.deleteById(routeID);
-        if(resRouteDelete == 0) {
-            throw new BusinessException(ResultCodeEnum.DELETE_ERROR);
-        }
+        // 清空缓存
+        List<Object> stations = redisTemplate.opsForList().range("routeStationMap:" + routeID, 0, -1);
+        // 找到和当前route相关的站点的路径
+        stations.forEach(staID -> {
+            String routeStationKey = "route:staID:" + staID;
+            redisTemplate.delete(routeStationKey);
+        });
+        String nameCityDelKey = "routeMap:routeID:" + routeID;
+        String nameCity = (String)redisTemplate.opsForValue().get(nameCityDelKey);
+        String[] split = nameCity.split(":");
+        redisTemplate.delete("route:routeName:" + split[0] + "cityID:" + split[1]);
+        redisTemplate.delete("route:cityID:" + split[1]);
+        redisTemplate.delete("routeMap:routeID:" + routeID);
+        redisTemplate.delete("routeMap:routeName:" + split[0] + "cityID:" + split[1]);
     }
 
     @Override
