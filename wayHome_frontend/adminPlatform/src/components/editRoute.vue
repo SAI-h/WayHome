@@ -136,6 +136,7 @@ export default {
                     })
                 }
             }
+            // console.log(this.dynamicValidateForm.points);
         },
         getStations() { // 获取将当前城市的索引公交站点
             // let args = {
@@ -152,6 +153,11 @@ export default {
                 res => {
                     if(res.data.code === SUCCESS) {
                         this.stationList = res.data.data;
+                        this.stationList.forEach((item, index) => {
+                            item.pointLat = item.staLat;
+                            item.pointLng = item.staLng;
+                        })
+                        // console.log(this.stationList);
                     }
                     else if(res.data.code === EXPIRE) {
                             MessageBox.alert("用户登录已过期！", "提示信息");
@@ -300,7 +306,6 @@ export default {
         addPoint(item, type) { // 向当前站点后新增站点或控制点
             let index = this.dynamicValidateForm.points.indexOf(item);
             let addItem;
-            console.log(item);
             if(type === STATION_POINT) {
                 addItem = {
                     staID: STATION_POINT,
@@ -407,6 +412,7 @@ export default {
                         );
                     }
                 }
+                // console.log(drawPoints);
                 this.$bus.$emit("drawPath", drawPoints);
             }
         }

@@ -133,6 +133,7 @@ export default {
                 res => {
                     if(res.data.code === SUCCESS) {
                         this.routes = res.data.data;
+                        // console.log(this.routes);
                         // console.log(res.data.data);
                     }
                     else {

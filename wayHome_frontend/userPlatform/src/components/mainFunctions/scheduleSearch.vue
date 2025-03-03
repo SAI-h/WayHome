@@ -225,10 +225,12 @@ export default {
                 res => {
                     if(res.data.code === SUCCESS) {
                         let info = res.data.data;
+                        // console.log(info);
                         this.schedule.dir_0.startStation = this.startStationTag;
                         this.schedule.dir_0.endStation = this.endStationTag;
                         this.schedule.dir_1.startStation = this.endStationTag;
                         this.schedule.dir_1.endStation = this.startStationTag;
+                        // console.log(this.schedule.dir_0.startStation);
                         for(let i = 0; i < 7; i ++) {
                             this.schedule.dir_0.sendTime[i] = [];
                             this.schedule.dir_1.sendTime[i] = [];
@@ -237,7 +239,7 @@ export default {
                         this.schedule.dir_1.remarks = ' ';
                         for(let sch of info) {
                             let set = 0; // 放置位置
-                            if(sch.direction === true) set = 1;
+                            if(sch.direction === false) set = 1;
                             let startTime = this.getIntTime(sch.startTime);
                             let endTime = this.getIntTime(sch.endTime);
                             let deInterval = sch.deInterval;

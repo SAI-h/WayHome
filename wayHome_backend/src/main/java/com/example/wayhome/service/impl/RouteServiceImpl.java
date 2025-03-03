@@ -104,6 +104,7 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
             }
         });
         redisTemplate.delete("route:cityID:" + routeDTO.getCityID());
+        redisTemplate.delete("routeNameList");
     }
 
     @Override

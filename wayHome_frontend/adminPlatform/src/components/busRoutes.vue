@@ -107,7 +107,7 @@ export default {
                     // console.log(res);
                     if(res.data.code === SUCCESS) {
                         let msg = res.data.data;
-                        // console.log(msg);
+                        console.log(msg);
                         let paths = new Map();
 
                         for(let path of msg) {
@@ -231,7 +231,7 @@ export default {
                             this.$router.replace('/login');
                         }
                         else {
-                            MessageBox.alert(`删除公交路线失败！\n错误信息为:${res.data.error}`, "提示信息");
+                            MessageBox.alert(`删除公交路线失败！\n错误信息为:${res.data.message}`, "提示信息");
                         }
                     })
 

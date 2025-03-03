@@ -194,7 +194,7 @@
             for(let points of routeDetial) {
                 this.path = [];
                 for(let point of points) {
-                    if(point.staID !== null) { // 是站点
+                    if(point.staID !== null && point.staID !== undefined && point.staID !== -1) { // 是站点
                         this.mkerlist.push(
                             new AMap.Marker({
                                 position: [point.pointLng, point.pointLat],

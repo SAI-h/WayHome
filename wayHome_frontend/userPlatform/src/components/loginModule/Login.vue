@@ -62,6 +62,7 @@ export default {
             axios.get(`${BASE}/city`)
             .then(
                 res => {
+                    console.log(res.data);
                     if(res.data.code === SUCCESS) {
                         this.cityList = res.data.data;
                         this.loginForm.cityChoice = this.cityList[0];

@@ -57,7 +57,7 @@ public class RedisTemplateConfig {
         template.setHashValueSerializer(serializer);
 
         template.afterPropertiesSet();
-        template.setEnableTransactionSupport(true);
+//        template.setEnableTransactionSupport(true);
         return template;
     }
 
