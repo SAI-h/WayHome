@@ -4,7 +4,7 @@ module.exports = {
     //     host: '49.235.138.213'
     // },
     devServer: {
-      port: 8081, // 端口号
+      port: 18081, // 端口号
     },
     publicPath: './',
     outputDir: 'dist', // build时构建文件的目录 构建时传入 --no-clean 可关闭该行为

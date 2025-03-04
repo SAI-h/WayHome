@@ -12,10 +12,7 @@ import com.example.wayhome.mapper.RoutePointMapper;
 import com.example.wayhome.mapper.ScheduleMapper;
 import com.example.wayhome.mapper.StationMapper;
 import com.example.wayhome.service.PathCalculateService;
-import com.example.wayhome.vo.PointTransferVO;
-import com.example.wayhome.vo.PointVO;
-import com.example.wayhome.vo.SolutionVO;
-import com.example.wayhome.vo.StationInRouteVO;
+import com.example.wayhome.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.geo.Distance;
@@ -351,7 +348,10 @@ public class PathCalculateServiceImpl implements PathCalculateService {
             if(tag) {
                 List<Point> places = redisTemplate.opsForGeo().position("places", route.get(i).getPointID());
                 PointTransferVO point = new PointTransferVO();
-                point.setPoint(places.get(0));
+                PointTinyVO pointSave = new PointTinyVO();
+                pointSave.setPointLng(places.get(0).getX());
+                pointSave.setPointLat(places.get(0).getY());
+                point.setPoint(pointSave);
                 point.setStaID(route.get(i).getStaID());
                 detailPath.add(point);
                 if(detailPath.size() > 1) {
@@ -373,7 +373,10 @@ public class PathCalculateServiceImpl implements PathCalculateService {
             if(tag) {
                 List<Point> places = redisTemplate.opsForGeo().position("places", route.get(i).getPointID());
                 PointTransferVO point = new PointTransferVO();
-                point.setPoint(places.get(0));
+                PointTinyVO pointSave = new PointTinyVO();
+                pointSave.setPointLng(places.get(0).getX());
+                pointSave.setPointLat(places.get(0).getY());
+                point.setPoint(pointSave);
                 point.setStaID(route.get(i).getStaID());
                 detailPath.add(point);
                 if(detailPath.size() > 1) {

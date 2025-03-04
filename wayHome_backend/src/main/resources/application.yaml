@@ -12,6 +12,12 @@ spring:
     redis:
       port: 6379
       database: 0
+  rabbitmq:
+    host: localhost
+    port: 5672       # 默认端口
+    username: guest  # 默认用户名
+    password: guest  # 默认密码
+    virtual-host: /  # 默认虚拟主机
 
 
 server:

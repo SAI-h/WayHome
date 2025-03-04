@@ -22,7 +22,9 @@ public enum ResultCodeEnum {
     Signature_Exception(701, "Invalid JWT signature"),
     Expired_JwtException(702, "Expired JWT token"),
     AlgorithmMismatch_Exception(703, "Algorithm mismatch wrong"),
-    Jwt_Exception(704, "JWT token error");
+    Jwt_Exception(704, "JWT token error"),
+    TASK_RECEIVE(801, "Task received"),
+    PROCESSING(802, "PROCESSING");
 
     private final Integer code;
     private final String message;
