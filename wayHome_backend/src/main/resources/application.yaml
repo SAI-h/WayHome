@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: wayHome
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      url: jdbc:mysql://localhost:3306/bus_dataset?useUnicode=true&characterEncoding=utf8
+      username: root
+      password: ${DB_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      port: 6379
+      database: 0
+  rabbitmq:
+    host: localhost
+    port: 5672       # 默认端口
+    username: guest  # 默认用户名
+    password: guest  # 默认密码
+    virtual-host: /  # 默认虚拟主机
+
+
+server:
+  port: 3000
+  servlet:
+    context-path: /
+
+
+jwt:
+  secret: REPLACE_ME_WITH_RANDOM_JWT_SECRET
+  expiration: 60
+
+redis:
+  expiration: 86400
+
+
+speed:
+  6.3
+
