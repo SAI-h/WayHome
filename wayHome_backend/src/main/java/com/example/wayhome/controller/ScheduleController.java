@@ -5,9 +5,9 @@ import com.example.wayhome.dto.ScheduleDTO;
 import com.example.wayhome.service.ScheduleService;
 import com.example.wayhome.utils.Result;
 import com.example.wayhome.vo.ScheduleVO;
+import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("schedule")
 public class ScheduleController {
 
-    @Autowired
+    @Resource
     private ScheduleService scheduleService;
 
     @PostMapping

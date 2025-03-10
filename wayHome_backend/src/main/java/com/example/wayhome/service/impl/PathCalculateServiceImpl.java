@@ -13,7 +13,7 @@ import com.example.wayhome.mapper.ScheduleMapper;
 import com.example.wayhome.mapper.StationMapper;
 import com.example.wayhome.service.PathCalculateService;
 import com.example.wayhome.vo.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Point;
@@ -30,19 +30,19 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class PathCalculateServiceImpl implements PathCalculateService {
 
-    @Autowired
+    @Resource
     private ScheduleMapper scheduleMapper;
 
-    @Autowired
+    @Resource
     private RoutePointMapper routePointMapper;
 
-    @Autowired
+    @Resource
     private StationMapper stationMapper;
 
-    @Autowired
+    @Resource
     private RouteMapper routeMapper;
 
-    @Autowired
+    @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
     @Value("${redis.expiration}")

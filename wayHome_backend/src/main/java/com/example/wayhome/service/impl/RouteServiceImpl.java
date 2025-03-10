@@ -19,7 +19,7 @@ import com.example.wayhome.vo.PointVO;
 import com.example.wayhome.vo.RouteQStationVO;
 import com.example.wayhome.vo.RouteVO;
 import io.micrometer.common.util.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -32,16 +32,16 @@ import java.util.stream.Collectors;
 @Service
 public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements RouteService {
 
-    @Autowired
+    @Resource
     private RouteMapper routeMapper;
 
-    @Autowired
+    @Resource
     private PointMapper pointMapper;
 
-    @Autowired
+    @Resource
     private RoutePointMapper routePointMapper;
 
-    @Autowired
+    @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
 

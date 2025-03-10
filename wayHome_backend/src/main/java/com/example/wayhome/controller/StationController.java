@@ -4,10 +4,9 @@ import com.example.wayhome.dto.StationDTO;
 import com.example.wayhome.service.StationService;
 import com.example.wayhome.utils.Result;
 import com.example.wayhome.vo.StationVO;
+import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +15,7 @@ import java.util.List;
 @RequestMapping("/station")
 public class StationController {
 
-    @Autowired
+    @Resource
     private StationService stationService;
 
     @PostMapping

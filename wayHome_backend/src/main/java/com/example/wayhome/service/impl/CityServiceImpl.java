@@ -6,7 +6,7 @@ import com.example.wayhome.entity.City;
 import com.example.wayhome.mapper.CityMapper;
 import com.example.wayhome.service.CityService;
 import com.example.wayhome.vo.CityVO;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,10 +19,10 @@ import java.util.List;
 @Service
 public class CityServiceImpl extends ServiceImpl<CityMapper, City> implements CityService {
 
-    @Autowired
+    @Resource
     private CityMapper cityMapper;
 
-    @Autowired
+    @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
     @Value("${redis.expiration}")

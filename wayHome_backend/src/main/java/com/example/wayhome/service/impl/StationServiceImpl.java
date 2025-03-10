@@ -12,7 +12,7 @@ import com.example.wayhome.mapper.StationMapper;
 import com.example.wayhome.service.StationService;
 import com.example.wayhome.utils.ResultCodeEnum;
 import com.example.wayhome.vo.StationVO;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -27,13 +27,13 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class StationServiceImpl extends ServiceImpl<StationMapper, Station> implements StationService {
 
-    @Autowired
+    @Resource
     private StationMapper stationMapper;
 
-    @Autowired
+    @Resource
     private PointMapper pointMapper;
 
-    @Autowired
+    @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
     @Value("${redis.expiration}")

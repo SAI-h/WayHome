@@ -1,13 +1,12 @@
 package com.example.wayhome.controller;
 
-import com.example.wayhome.config.JwtAdminConfig;
 import com.example.wayhome.dto.RouteDTO;
 import com.example.wayhome.service.RouteService;
 import com.example.wayhome.utils.Result;
 import com.example.wayhome.vo.RouteVO;
+import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,7 +16,7 @@ import java.util.List;
 @RequestMapping("/route")
 public class RouteController {
 
-    @Autowired
+    @Resource
     private RouteService routeService;
 
     @PostMapping

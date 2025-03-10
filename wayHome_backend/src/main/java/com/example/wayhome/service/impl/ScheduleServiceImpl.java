@@ -10,9 +10,8 @@ import com.example.wayhome.exception.BusinessException;
 import com.example.wayhome.mapper.ScheduleMapper;
 import com.example.wayhome.service.ScheduleService;
 import com.example.wayhome.utils.ResultCodeEnum;
-import com.example.wayhome.vo.CityVO;
 import com.example.wayhome.vo.ScheduleVO;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,10 +25,10 @@ import java.util.List;
 @Service
 public class ScheduleServiceImpl extends ServiceImpl<ScheduleMapper, Schedule> implements ScheduleService {
 
-    @Autowired
+    @Resource
     private ScheduleMapper scheduleMapper;
 
-    @Autowired
+    @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
     @Value("${redis.expiration}")
