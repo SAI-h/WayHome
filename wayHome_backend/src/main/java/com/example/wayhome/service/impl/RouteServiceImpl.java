@@ -3,7 +3,7 @@ package com.example.wayhome.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.wayhome.MedianValueSerialization.ListSerialization;
+import com.example.wayhome.serialization.ListSerialization;
 import com.example.wayhome.convert.RouteConvert;
 import com.example.wayhome.dto.PointDTO;
 import com.example.wayhome.dto.RouteDTO;
@@ -20,7 +20,7 @@ import com.example.wayhome.vo.RouteQStationVO;
 import com.example.wayhome.vo.RouteVO;
 import io.micrometer.common.util.StringUtils;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Value;;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,7 +52,7 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
     @Transactional
     public void routeInsert(RouteDTO routeDTO) {
         // 插入线路
-        Route route = RouteConvert.convertToDO(routeDTO);
+        Route route = RouteConvert.convertToDo(routeDTO);
         int resRouteInsert = routeMapper.insert(route);
 
         if(resRouteInsert != 1) {
@@ -114,7 +114,7 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
             // 缓存读取数据
             if(redisTemplate.hasKey("routeNameList")) {
                 ListSerialization<String> routeNameList = (ListSerialization<String>) redisTemplate.opsForValue().get("routeNameList");
-                return routeNameList.get_data();
+                return routeNameList.getData();
             }
 
             // 数据库加载数据
@@ -124,7 +124,7 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
             List<Route> routes = routeMapper.selectList(queryWrapper);
             List<String> list = routes.stream().map(Route::getRouteName).toList();
             ListSerialization<String> listSerialization = new ListSerialization<>();
-            listSerialization.set_data(list);
+            listSerialization.setData(list);
             // 同步缓存数据
             redisTemplate.opsForValue().set("routeNameList", listSerialization);
             redisTemplate.expire("routeNameList", expireTime, java.util.concurrent.TimeUnit.SECONDS);
@@ -157,7 +157,7 @@ public class RouteServiceImpl extends ServiceImpl<RouteMapper, Route> implements
 
         List<RouteVO> routeVOList = new ArrayList<>();
         for(Route route : routes) {
-            routeVOList.add(RouteConvert.convertToVO(route));
+            routeVOList.add(RouteConvert.convertToVo(route));
         }
 
         // 将所有的routeID信息存储为一个搜寻列表

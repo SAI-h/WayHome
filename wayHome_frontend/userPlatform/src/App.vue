@@ -12,25 +12,32 @@ export default {
 
 <style>
 * {
-    margin: 0;
-  }
-  body {
-    height: 100%;
-  }
-  .amap-logo{
-    display: none;
-    opacity:0 !important;
-  }
-  .amap-copyright {
-      opacity:0;
-  }
-  #app {
-    height: 607px;
-    font-family: Avenir, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-align: center;
-    color: #2c3e50;
-    /* margin-top: -40px; */
-  }
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Avenir', 'Helvetica Neue', Helvetica, Arial, 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 隐藏高德地图水印与版权信息 */
+.amap-logo,
+.amap-copyright {
+  display: none;
+  opacity: 0 !important;
+}
+
+#app {
+  color: #2c3e50;
+  text-align: center;
+}
 </style>

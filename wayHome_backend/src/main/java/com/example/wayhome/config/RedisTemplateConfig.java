@@ -7,47 +7,34 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+/**
+ * Redis 序列化配置。
+ *
+ * @author WayHome
+ */
 @Configuration
-//@EnableTransactionManagement
 public class RedisTemplateConfig {
 
-//    @Bean
-//    public PlatformTransactionManager transactionManager(DataSource dataSource) {
-//        return new DataSourceTransactionManager(dataSource);
-//    }
-
-//    @Bean
-//    public ObjectMapper objectMapper() {
-//        return Jackson2ObjectMapperBuilder.json()
-//                .modulesToInstall(new JavaTimeModule()) // 注册 JavaTimeModule
-//                .build();
-
-//    @Bean
-//    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory connectionFactory) {
-//        StringRedisTemplate template = new StringRedisTemplate();
-//        template.setConnectionFactory(connectionFactory);
-////        template.setEnableTransactionSupport(true); // 启用事务支持
-//        return template;
-//    }
-
-
+    /**
+     * 配置 RedisTemplate，键使用字符串序列化，值使用 JSON 序列化。
+     *
+     * @param connectionFactory Redis 连接工厂
+     * @return RedisTemplate
+     */
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
-        // Key序列化
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setHashKeySerializer(new StringRedisSerializer());
+        StringRedisSerializer stringSerializer = new StringRedisSerializer();
+        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer();
 
-        // Value序列化（使用自定义ObjectMapper）
-        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
-        template.setValueSerializer(serializer);
-        template.setHashValueSerializer(serializer);
+        template.setKeySerializer(stringSerializer);
+        template.setHashKeySerializer(stringSerializer);
+        template.setValueSerializer(jsonSerializer);
+        template.setHashValueSerializer(jsonSerializer);
 
         template.afterPropertiesSet();
-//        template.setEnableTransactionSupport(true);
         return template;
     }
-
 }

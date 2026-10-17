@@ -1,8 +1,9 @@
 package com.example.wayhome.service.impl;
 
-import com.example.wayhome.graphEntity.Edge;
-import com.example.wayhome.graphEntity.Graph;
-import com.example.wayhome.graphEntity.Node;
+import com.example.wayhome.graph.Edge;
+import com.example.wayhome.graph.Graph;
+import com.example.wayhome.graph.Node;
+import com.example.wayhome.constant.RedisKeyConstant;
 import com.example.wayhome.dto.StationTinyDTO;
 import com.example.wayhome.entity.Route;
 import com.example.wayhome.entity.Schedule;
@@ -94,8 +95,8 @@ public class PathCalculateServiceImpl implements PathCalculateService {
             stationTinyDTO.setPointID(pointID);
 
             // 将控制点/站点的地理位置信息交给 redis 进行保存
-            redisTemplate.opsForGeo().add("places", new Point(pointVO.getPointLng(), pointVO.getPointLat()), pointID);
-            redisTemplate.expire("places", expireTime, TimeUnit.SECONDS);
+            redisTemplate.opsForGeo().add(RedisKeyConstant.GEO_PLACES, new Point(pointVO.getPointLng(), pointVO.getPointLat()), pointID);
+            redisTemplate.expire(RedisKeyConstant.GEO_PLACES, expireTime, TimeUnit.SECONDS);
             routePointSave.get(routeID).add(stationTinyDTO);
 
             // 存储站点映射关系
@@ -107,7 +108,7 @@ public class PathCalculateServiceImpl implements PathCalculateService {
                 if(!stationBelongedRoutes.containsKey(staID))
                     stationBelongedRoutes.put(staID, new ArrayList<>());
                 stationBelongedRoutes.get(staID).add(routeID);
-                uniqueTagToPointID.put(curStationID, pointID);
+                uniqueTagToPointID.put(curStationID - 1, pointID);
             }
         }
         // 当前运行期间,没有任何一条路线经过相关站点
@@ -202,7 +203,7 @@ public class PathCalculateServiceImpl implements PathCalculateService {
                 "SATURDAY", "周六",
                 "SUNDAY", "周日"
         );
-        String _workday = workdays.get(searchTime.getDayOfWeek().toString());
+        String workday = workdays.get(searchTime.getDayOfWeek().toString());
         LocalTime localTime = searchTime.toLocalTime();
         // 将 LocalTime 转换为 LocalDateTime（假设是某天的时间）
         LocalDateTime utcDateTime = LocalDateTime.of(LocalDate.now(), localTime);
@@ -212,8 +213,8 @@ public class PathCalculateServiceImpl implements PathCalculateService {
         ZoneId shanghaiZone = ZoneId.of("Asia/Shanghai");
         ZonedDateTime shanghaiZoned = utcZoned.withZoneSameInstant(shanghaiZone);
         // 提取东八区时间（转换为 LocalTime）
-        LocalTime _time = shanghaiZoned.toLocalTime();
-        List<Schedule> schedules = scheduleMapper.scheduleSelectByTime(_workday, _time, cityID);
+        LocalTime time = shanghaiZoned.toLocalTime();
+        List<Schedule> schedules = scheduleMapper.scheduleSelectByTime(workday, time, cityID);
 
         Map<Long, List<Integer>> routeDirectionSave = new HashMap<>();
         // 一条线路,正反两个方向, 存在三种可能: 只有正向方向、只有反向方向、正反方向均存在
@@ -233,7 +234,7 @@ public class PathCalculateServiceImpl implements PathCalculateService {
     private double heuristic(Long pointAID, Long pointBID, Map<Long, Long> coordinates) {
         Long pointA = coordinates.get(pointAID);
         Long pointB = coordinates.get(pointBID);
-        Distance distance = redisTemplate.opsForGeo().distance("places", pointA, pointB, RedisGeoCommands.DistanceUnit.METERS);
+        Distance distance = redisTemplate.opsForGeo().distance(RedisKeyConstant.GEO_PLACES, pointA, pointB, RedisGeoCommands.DistanceUnit.METERS);
         return (distance != null) ? distance.getValue() : Double.MAX_VALUE;
     }
 
@@ -249,13 +250,12 @@ public class PathCalculateServiceImpl implements PathCalculateService {
     }
 
     public List<Long> aStarSearch(long startID, long goalID, Map<Long, Long> coordinates, Graph<Double> graph) {
-        Map<Long, List<Edge<Double>>> G = graph.getG();
+        Map<Long, List<Edge<Double>>> adjacencyList = graph.getAdjacencyList();
 
-        PriorityQueue<Node> openSet = new PriorityQueue<>(Comparator.comparingDouble(Node::getF));
+        PriorityQueue<Node> openSet = new PriorityQueue<>(Comparator.comparingDouble(Node::getFScore));
         Map<Long, Double> gScore = new HashMap<>(); // 起点到当前点的真实代价
         Map<Long, Double> fScore = new HashMap<>(); // 估计的总代价
         Map<Long, Long> cameFrom = new HashMap<>(); // 路径回溯
-
 
         gScore.put(startID, 0.0);
         fScore.put(startID, heuristic(startID, goalID, coordinates) / speed);
@@ -270,17 +270,19 @@ public class PathCalculateServiceImpl implements PathCalculateService {
                 return reconstructPath(cameFrom, goalID);
             }
 
-            if (!G.containsKey(currentID)) continue;
-            for (Edge<Double> edge : G.get(currentID)) {
-                long neighborID = edge.getNextID();
-                double tentative_gScore = gScore.getOrDefault(currentID, Double.MAX_VALUE) + edge.getValue();
+            if (!adjacencyList.containsKey(currentID)) {
+                continue;
+            }
+            for (Edge<Double> edge : adjacencyList.get(currentID)) {
+                long neighborID = edge.getNextId();
+                double tentativeGScore = gScore.getOrDefault(currentID, Double.MAX_VALUE) + edge.getValue();
 
-                if (tentative_gScore < gScore.getOrDefault(neighborID, Double.MAX_VALUE)) {
+                if (tentativeGScore < gScore.getOrDefault(neighborID, Double.MAX_VALUE)) {
                     cameFrom.put(neighborID, currentID);
-                    gScore.put(neighborID, tentative_gScore);
-                    double fScoreValue = tentative_gScore + heuristic(neighborID, goalID, coordinates) / speed;
+                    gScore.put(neighborID, tentativeGScore);
+                    double fScoreValue = tentativeGScore + heuristic(neighborID, goalID, coordinates) / speed;
                     fScore.put(neighborID, fScoreValue);
-                    openSet.add(new Node(neighborID, tentative_gScore, fScoreValue));
+                    openSet.add(new Node(neighborID, tentativeGScore, fScoreValue));
                 }
             }
         }
@@ -288,7 +290,7 @@ public class PathCalculateServiceImpl implements PathCalculateService {
     }
 
     public List<List<Long>> BFSSearch(long startID, long goalID, Graph<Integer> graph) {
-        Map<Long, List<Edge<Integer>>> g = graph.getG();
+        Map<Long, List<Edge<Integer>>> adjacencyList = graph.getAdjacencyList();
 
         Queue<List<Long>> queue = new LinkedList<>();
         queue.offer(new ArrayList<>(List.of(startID)));
@@ -305,7 +307,9 @@ public class PathCalculateServiceImpl implements PathCalculateService {
             int currentTransfers = minTransfers.get(lastNode);
 
             // 如果当前路径已经超过最优换乘次数，则直接跳过
-            if (currentTransfers > minTransferCount) continue;
+            if (currentTransfers > minTransferCount) {
+                continue;
+            }
 
             // 到达终点，更新结果
             if (lastNode.equals(goalID)) {
@@ -319,8 +323,8 @@ public class PathCalculateServiceImpl implements PathCalculateService {
             }
 
             // 遍历邻接点
-            for (Edge<Integer> edge : g.getOrDefault(lastNode, new ArrayList<>())) {
-                Long nextNode = edge.getNextID();
+            for (Edge<Integer> edge : adjacencyList.getOrDefault(lastNode, new ArrayList<>())) {
+                Long nextNode = edge.getNextId();
                 int nextTransfers = currentTransfers + edge.getValue(); // 计算换乘次数
 
                 // 只允许换乘次数最少的路径进入队列
@@ -346,7 +350,7 @@ public class PathCalculateServiceImpl implements PathCalculateService {
                 tag = true;
             }
             if(tag) {
-                List<Point> places = redisTemplate.opsForGeo().position("places", route.get(i).getPointID());
+                List<Point> places = redisTemplate.opsForGeo().position(RedisKeyConstant.GEO_PLACES, route.get(i).getPointID());
                 PointTransferVO point = new PointTransferVO();
                 PointTinyVO pointSave = new PointTinyVO();
                 pointSave.setPointLng(places.get(0).getX());
@@ -357,7 +361,7 @@ public class PathCalculateServiceImpl implements PathCalculateService {
                 if(detailPath.size() > 1) {
                     Long lastPointID = route.get(i - 1).getPointID();
                     Long curPointID = route.get(i).getPointID();
-                    Distance distance = redisTemplate.opsForGeo().distance("places", lastPointID, curPointID, RedisGeoCommands.DistanceUnit.METERS);
+                    Distance distance = redisTemplate.opsForGeo().distance(RedisKeyConstant.GEO_PLACES, lastPointID, curPointID, RedisGeoCommands.DistanceUnit.METERS);
                     if(graph.getRealDistance() == null) graph.setRealDistance(0.0);
                     graph.setRealDistance(graph.getRealDistance() + distance.getValue());
                 }
@@ -371,7 +375,7 @@ public class PathCalculateServiceImpl implements PathCalculateService {
                 tag = true;
             }
             if(tag) {
-                List<Point> places = redisTemplate.opsForGeo().position("places", route.get(i).getPointID());
+                List<Point> places = redisTemplate.opsForGeo().position(RedisKeyConstant.GEO_PLACES, route.get(i).getPointID());
                 PointTransferVO point = new PointTransferVO();
                 PointTinyVO pointSave = new PointTinyVO();
                 pointSave.setPointLng(places.get(0).getX());
@@ -382,7 +386,7 @@ public class PathCalculateServiceImpl implements PathCalculateService {
                 if(detailPath.size() > 1) {
                     Long lastPointID = route.get(i + 1).getPointID();
                     Long curPointID = route.get(i).getPointID();
-                    Distance distance = redisTemplate.opsForGeo().distance("places", lastPointID, curPointID, RedisGeoCommands.DistanceUnit.METERS);
+                    Distance distance = redisTemplate.opsForGeo().distance(RedisKeyConstant.GEO_PLACES, lastPointID, curPointID, RedisGeoCommands.DistanceUnit.METERS);
                     if(graph.getRealDistance() == null) graph.setRealDistance(0.0);
                     graph.setRealDistance(graph.getRealDistance() + distance.getValue());
                 }
@@ -430,7 +434,7 @@ public class PathCalculateServiceImpl implements PathCalculateService {
             for(int i = 1; i < stationTinyDTOS.size(); i++) {
                 Long curPointID = stationTinyDTOS.get(i).getPointID();
                 Long curStaID = stationTinyDTOS.get(i).getStaID();
-                Distance distance = redisTemplate.opsForGeo().distance("places", lastPointID, curPointID, RedisGeoCommands.DistanceUnit.METERS);
+                Distance distance = redisTemplate.opsForGeo().distance(RedisKeyConstant.GEO_PLACES, lastPointID, curPointID, RedisGeoCommands.DistanceUnit.METERS);
                 totalDistance += distance.getValue();
                 if(curStaID != -1) { // 当前是一个站点, 建边
                     Long curID = stationIDToUniqueTag.get(curStaID + ":" + routeID);
@@ -458,9 +462,9 @@ public class PathCalculateServiceImpl implements PathCalculateService {
                         Long curStation = stationIDToUniqueTag.get(staID + ":" + curRouteID);
                         Long nextStationInSameStaID = stationIDToUniqueTag.get(staID + ":" + nextRouteID);
                         // 从同路线建图中找出下一个站点集合(理论上,同一个路线只有两个方向,不考虑连续换乘最多只有两个next站点)
-                        List<Edge<Double>> edges = graph.getG().get(nextStationInSameStaID);
+                        List<Edge<Double>> edges = graph.getAdjacencyList().get(nextStationInSameStaID);
                         edges.forEach(edge -> {
-                            Long nextStation = edge.getNextID();
+                            Long nextStation = edge.getNextId();
                             String nextStationID = uniqueTagToStationID.get(nextStation);
                             Long routeID = Long.parseLong(nextStationID.split(":")[1]);
                             if(routeID.equals(nextRouteID)) { // 不考虑连续换乘,因此直觉上感觉需要保持在一条路线上,没有详细证明过
@@ -554,9 +558,9 @@ public class PathCalculateServiceImpl implements PathCalculateService {
                         Long curStation = stationIDToUniqueTag.get(staID + ":" + curRouteID);
                         Long nextStationInSameStaID = stationIDToUniqueTag.get(staID + ":" + nextRouteID);
                         // 从同路线建图中找出下一个站点集合(理论上,同一个路线只有两个方向,不考虑连续换乘最多只有两个next站点)
-                        List<Edge<Integer>> edges = graph.getG().get(nextStationInSameStaID);
+                        List<Edge<Integer>> edges = graph.getAdjacencyList().get(nextStationInSameStaID);
                         edges.forEach(edge -> {
-                            Long nextStation = edge.getNextID();
+                            Long nextStation = edge.getNextId();
                             String nextStationID = uniqueTagToStationID.get(nextStation);
                             Long routeID = Long.parseLong(nextStationID.split(":")[1]);
                             if(routeID.equals(nextRouteID)) { // 不考虑连续换乘,因此直觉上感觉需要保持在一条路线上,没有详细证明过

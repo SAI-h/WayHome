@@ -4,34 +4,44 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.wayhome.dto.StationDTO;
 import com.example.wayhome.entity.Station;
 import com.example.wayhome.vo.StationVO;
-import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
+/**
+ * 站点业务接口。
+ *
+ * @author WayHome
+ */
 public interface StationService extends IService<Station> {
 
     /**
-     * 插入站点操作
+     * 新增站点。
+     *
+     * @param stationDTO 站点信息
      */
     void stationInsert(StationDTO stationDTO);
 
     /**
-     * 根据站点名称返回站点信息
+     * 根据站点名称（可选）查询站点。
+     *
+     * @param staName 站点名称
+     * @param cityId  城市 ID
+     * @return 站点列表
      */
-    List<StationVO> stationQuery(String staName, Integer cityID);
-
-//    /**
-//     * 搜寻出所有的站点信息
-//     */
-//    List<StationVO> stationQueryAll(Integer cityID);
+    List<StationVO> stationQuery(String staName, Integer cityId);
 
     /**
-     * 对站点信息进行更新
+     * 更新站点。
+     *
+     * @param stationDTO 站点信息
      */
     void stationUpdate(StationDTO stationDTO);
 
     /**
-     * 删除站点信息
+     * 删除站点。
+     *
+     * @param staId   站点 ID
+     * @param pointId 坐标点 ID
      */
-    void stationDelete(Long staID, Long pointID);
+    void stationDelete(Long staId, Long pointId);
 }

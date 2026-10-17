@@ -10,25 +10,30 @@ import com.example.wayhome.service.AdminService;
 import com.example.wayhome.utils.MD5Util;
 import com.example.wayhome.utils.ResultCodeEnum;
 import com.example.wayhome.vo.AdminVO;
-import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 管理员业务实现。
+ *
+ * @author WayHome
+ */
 @Service
 public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements AdminService {
 
-    @Resource
-    private AdminMapper adminMapper;
+    private final AdminMapper adminMapper;
+
+    public AdminServiceImpl(AdminMapper adminMapper) {
+        this.adminMapper = adminMapper;
+    }
 
     @Override
-    @Transactional
     public AdminVO adminLogin(AdminDTO adminDTO) {
-        // 数据加密
-        adminDTO.setPassword(MD5Util.encrypt(adminDTO.getPassword()));
+        String encryptedPassword = MD5Util.encrypt(adminDTO.getPassword());
+        adminDTO.setPassword(encryptedPassword);
         Admin admin = adminMapper.adminLogin(adminDTO);
-        if(admin == null) {
+        if (admin == null) {
             throw new BusinessException(ResultCodeEnum.LOGIN_ERROR);
         }
-        return AdminConvert.convertToVO(admin);
+        return AdminConvert.convertToVo(admin);
     }
 }

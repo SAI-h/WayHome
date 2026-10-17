@@ -18,7 +18,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +37,7 @@ public class ScheduleServiceImpl extends ServiceImpl<ScheduleMapper, Schedule> i
         List<ScheduleVO> scheduleVOList = new ArrayList<>();
         if(!schedules.isEmpty()) {
             for (Schedule schedule : schedules) {
-                ScheduleVO scheduleVO = ScheduleConvert.ConvertToVO(schedule);
+                ScheduleVO scheduleVO = ScheduleConvert.convertToVo(schedule);
                 scheduleVOList.add(scheduleVO);
                 ops.rightPush(key, scheduleVO);
                 redisTemplate.opsForValue().set("schedule:" + schedule.getScheduleID(), schedule.getRouteID());
@@ -65,26 +64,26 @@ public class ScheduleServiceImpl extends ServiceImpl<ScheduleMapper, Schedule> i
     }
 
 
-    private void cacheFree(Long routeID, String schedule_key_2) {
-        String key_route_reverse = "routeMap:routeID:" + routeID;
-        String schedule_key = "schedule:routeID:" + routeID;
-        Object routeIDToName = redisTemplate.opsForValue().get(key_route_reverse);
+    private void cacheFree(Long routeID, String scheduleDetailKey) {
+        String routeReverseKey = "routeMap:routeID:" + routeID;
+        String scheduleRouteKey = "schedule:routeID:" + routeID;
+        Object routeIDToName = redisTemplate.opsForValue().get(routeReverseKey);
 
         if(routeIDToName != null) {
             String[] split = ((String)routeIDToName).split(":");
-            String key_route = "routeMap:routeName:" + split[0] + ":cityID:" + split[1];
-            redisTemplate.delete(key_route);
+            String routeNameKey = "routeMap:routeName:" + split[0] + ":cityID:" + split[1];
+            redisTemplate.delete(routeNameKey);
         }
 
-        redisTemplate.delete(key_route_reverse);
-        redisTemplate.delete(schedule_key);
-        redisTemplate.delete(schedule_key_2);
+        redisTemplate.delete(routeReverseKey);
+        redisTemplate.delete(scheduleRouteKey);
+        redisTemplate.delete(scheduleDetailKey);
     }
 
     @Override
     @Transactional
     public void scheduleInsert(ScheduleDTO scheduleDTO) {
-        Schedule schedule = ScheduleConvert.ConvertToDO(scheduleDTO);
+        Schedule schedule = ScheduleConvert.convertToDo(scheduleDTO);
         scheduleMapper.insert(schedule);
         redisTemplate.delete("schedule:routeID:" + scheduleDTO.getRouteID());
     }
@@ -93,15 +92,15 @@ public class ScheduleServiceImpl extends ServiceImpl<ScheduleMapper, Schedule> i
     @Transactional
     public List<ScheduleVO> scheduleQuery(Long routeID) {
         ListOperations<String, Object> ops = redisTemplate.opsForList();
-        String Key = "schedule:routeID:" + routeID;
-        List<ScheduleVO> scheduleVOS = getScheduleVOSFromCache(ops, Key);
+        String scheduleRouteKey = "schedule:routeID:" + routeID;
+        List<ScheduleVO> scheduleVOS = getScheduleVOSFromCache(ops, scheduleRouteKey);
         if (scheduleVOS != null) return scheduleVOS;
 
         LambdaQueryWrapper<Schedule> scheduleLambdaQueryWrapper = new LambdaQueryWrapper<>();
         scheduleLambdaQueryWrapper.eq(Schedule::getRouteID, routeID)
                 .eq(Schedule::getIsDeleted, false);
         List<Schedule> schedules = scheduleMapper.selectList(scheduleLambdaQueryWrapper);
-        return loadToCache(ops, Key, schedules);
+        return loadToCache(ops, scheduleRouteKey, schedules);
     }
 
     @Override
@@ -110,33 +109,33 @@ public class ScheduleServiceImpl extends ServiceImpl<ScheduleMapper, Schedule> i
         ListOperations<String, Object> ops = redisTemplate.opsForList();
 
         // 由routeName和cityID查询routeID的信息
-        String key_route = "routeMap:routeName:" + routeName + ":cityID:" + cityID;
+        String routeNameKey = "routeMap:routeName:" + routeName + ":cityID:" + cityID;
 
         // 反序列化Long出现错误,需使用下面方式
-        Object routeIDObj = redisTemplate.opsForValue().get(key_route);
+        Object routeIDObj = redisTemplate.opsForValue().get(routeNameKey);
 
         // 存在RouteName + cityID向RouteID的映射关系
         if (routeIDObj != null) {
             long routeID = ((Number)routeIDObj).longValue();
-            String Key = "schedule:routeID:" + routeID;
-            return getScheduleVOSFromCache(ops, Key);
+            String scheduleRouteKey = "schedule:routeID:" + routeID;
+            return getScheduleVOSFromCache(ops, scheduleRouteKey);
         }
 
         List<Schedule> schedules = scheduleMapper.queryByName(routeName, cityID);
         long routeID = schedules.isEmpty() ? -1 : schedules.get(0).getRouteID() ;
-        String key_route_reverse = "routeMap:routeID:" + routeID;
-        String Key = "schedule:routeID:" + routeID;
+        String routeReverseKey = "routeMap:routeID:" + routeID;
+        String scheduleRouteKey = "schedule:routeID:" + routeID;
         // 存储RouteID到RouteName + cityID的双向映射关系
         if(routeID != -1) {
-            redisTemplate.opsForValue().set(key_route, routeID);
-            redisTemplate.opsForValue().set(key_route_reverse, routeName + ":" + cityID);
-            redisTemplate.expire(key_route, expireTime, java.util.concurrent.TimeUnit.SECONDS);
-            redisTemplate.expire(key_route_reverse, expireTime, java.util.concurrent.TimeUnit.SECONDS);
-            if(redisTemplate.hasKey(Key)) { // 不额外再次添加缓存
-                return getScheduleVOSFromCache(ops, Key);
+            redisTemplate.opsForValue().set(routeNameKey, routeID);
+            redisTemplate.opsForValue().set(routeReverseKey, routeName + ":" + cityID);
+            redisTemplate.expire(routeNameKey, expireTime, java.util.concurrent.TimeUnit.SECONDS);
+            redisTemplate.expire(routeReverseKey, expireTime, java.util.concurrent.TimeUnit.SECONDS);
+            if(redisTemplate.hasKey(scheduleRouteKey)) { // 不额外再次添加缓存
+                return getScheduleVOSFromCache(ops, scheduleRouteKey);
             }
         }
-        return loadToCache(ops, Key, schedules);
+        return loadToCache(ops, scheduleRouteKey, schedules);
     }
 
     @Override
@@ -156,8 +155,8 @@ public class ScheduleServiceImpl extends ServiceImpl<ScheduleMapper, Schedule> i
 
         // 删除缓存
         Long routeID = scheduleDTO.getRouteID();
-        String schedule_key_2 = "schedule:" + scheduleDTO.getScheduleID();
-        cacheFree(routeID, schedule_key_2);
+        String scheduleDetailKey = "schedule:" + scheduleDTO.getScheduleID();
+        cacheFree(routeID, scheduleDetailKey);
     }
 
 
@@ -171,11 +170,11 @@ public class ScheduleServiceImpl extends ServiceImpl<ScheduleMapper, Schedule> i
         }
 
         // 删除缓存
-        String schedule_key_2 = "schedule:" + scheduleID;
-        Object scheduleToRouteID = redisTemplate.opsForValue().get(schedule_key_2);
+        String scheduleDetailKey = "schedule:" + scheduleID;
+        Object scheduleToRouteID = redisTemplate.opsForValue().get(scheduleDetailKey);
         if(scheduleToRouteID != null) {
             long routeID = ((Number) scheduleToRouteID).longValue();
-            cacheFree(routeID, schedule_key_2);
+            cacheFree(routeID, scheduleDetailKey);
         }
     }
 

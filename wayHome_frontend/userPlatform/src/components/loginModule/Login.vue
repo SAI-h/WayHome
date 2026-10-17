@@ -1,225 +1,141 @@
 <template>
-    <!-- <v-scale-screen style="background-color: darkorange;"> -->
-    <div id="back">
-        <div id="login">
-            <br> <br>
-            <div id="lert">
-                <i class="el-icon-position"></i>
-                <span> 便民公共交通平台</span>
-            </div>
-            <el-form ref="form" :model="loginForm" label-width="80px" id="loginForm" @submit.native.prevent>
-                <el-form-item label="城市检索">
-                    <el-select v-model="this.loginForm.cityChoice" filterable placeholder="请选择/输入城市" @change="selectedItem">
-                        <el-option
-                            v-for="city in cityList"
-                            :key="city.cityID"
-                            :label="city.cityName"
-                            :value="city">
-                        </el-option>
-                    </el-select>
-                </el-form-item>
-                <el-button class="DAButton" @click="login" type="warning" :disabled="this.loginForm.cityChoice==='' || this.loginForm.cityChoice === null">即刻启程</el-button>
-            </el-form>
-        </div>
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-title">
+        <i class="el-icon-position"></i>
+        <span>便民公共交通平台</span>
+      </div>
+      <p class="login-subtitle">WayHome · 您的出行好帮手</p>
+
+      <el-form label-position="top" @submit.native.prevent>
+        <el-form-item label="城市检索">
+          <el-select
+            v-model="cityChoice"
+            filterable
+            placeholder="请选择 / 输入城市"
+            class="city-select"
+          >
+            <el-option
+              v-for="city in cityList"
+              :key="city.cityID"
+              :label="city.cityName"
+              :value="city"
+            />
+          </el-select>
+        </el-form-item>
+        <el-button
+          class="login-button"
+          type="warning"
+          :disabled="!cityChoice"
+          @click="login"
+        >
+          即刻启程
+        </el-button>
+      </el-form>
     </div>
-    <!-- </v-scale-screen> -->
+  </div>
 </template>
 
 <script>
-import axios from 'axios'
+import request from '../../utils/request'
 import { MessageBox } from 'element-ui'
-const SUCCESS = 200;
-const FAILURE = 202;
-// const BASE = "http://REPLACE_ME_WITH_YOUR_SERVER_HOST:3000";
-const BASE = "http://localhost:3000";
-
-const crypto = require('crypto');  //引入crypto模块
+import config from '../../config'
 
 export default {
-    name: 'login',
-    data() {
-        return {
-            cityList: [],
-            loginForm: {
-                // account: '',
-                // password: ''
-                cityChoice: null,
-            },
-            // loginForm: {
-            //     account: '',
-            //     password: ''
-            // }
-        }
-    },
-    mounted() {
-        this.getCityList();
-    },
-    methods:{
-        selectedItem() {
-            this.$forceUpdate();
-        },
-        getCityList() {
-            axios.get(`${BASE}/city`)
-            .then(
-                res => {
-                    console.log(res.data);
-                    if(res.data.code === SUCCESS) {
-                        this.cityList = res.data.data;
-                        this.loginForm.cityChoice = this.cityList[0];
-                    } else {
-                        MessageBox.alert(`初始化失败！\n错误信息为:${res.data.message}`, "提示信息");
-                    }
-                }
-            )
-            .catch(
-                error => {
-                    MessageBox.alert(`初始化失败！\n错误信息为:${error}`, "提示信息");
-                }
-            )
-        },
-        async login() {
-
-            this.$router.replace({
-                name: 'passengerHome',
-                params: {
-                    city: this.loginForm.cityChoice
-                }
-            })
-
-            // axios.get(`${BASE}/city`)
-            // .then(
-            //     res => {
-            //         if(res.data.code === SUCCESS) {
-            //             this.cityList = res.data.data;
-            //         } else {
-            //             MessageBox.alert(`初始化失败！\n错误信息为:${res.data.message}`, "提示信息");
-            //         }
-            //     }
-            // )
-            // .catch(
-            //     error => {
-            //         MessageBox.alert(`初始化失败！\n错误信息为:${error}`, "提示信息");
-            //     }
-            // )
-
-        //     const md5 = crypto.createHash('md5'); 
-        //     let digest = await md5.update(this.loginForm.password, 'utf8').digest('hex');
-
-        //     let loginTag = false;
-        //     await axios.post(`${BASE}/login`, {
-        //         account: "Dri" + this.loginForm.account,
-        //         password: digest,
-        //         role: 'driver'
-        //     })
-        //     .then(
-        //         res => {
-        //             if(res.data.status === SUCCESS) {
-        //                 loginTag = true;
-        //                 this.$router.replace({
-        //                     name: 'driverHome',
-        //                     params: {
-        //                         account: 'Dri' + this.loginForm.account,
-        //                         role: 'driver'
-        //                     }
-        //                 })
-        //             }
-        //         }
-        //     )
-        //     .catch(
-        //         error => {
-        //             MessageBox.alert(`登录失败！\n错误信息为:${error}`, "提示信息");
-        //         }
-        //     )
-
-        //    if(!loginTag) {
-        //         await axios.post(`${BASE}/login`, {
-        //             account:  this.loginForm.account,
-        //             password: digest,
-        //             role: 'user'
-        //         })
-        //         .then(
-        //             res => {
-        //                 if(res.data.status === SUCCESS) {
-        //                     loginTag = true;
-        //                     this.$router.replace({
-        //                         name: 'passengerHome',
-        //                         params: {
-        //                             account: this.loginForm.account,
-        //                             role: 'user'
-        //                         }
-        //                     })
-        //                 }
-        //             }
-        //         )
-        //         .catch(
-        //             error => {
-        //                 MessageBox.alert(`登录失败！\n错误信息为:${error}`, "提示信息");
-        //             }
-        //         )
-        //    }
-
-        //     if(!loginTag) {
-        //         MessageBox.alert("登录失败！请检查账号密码是否正确！", "提示信息");
-        //     }
-        }
+  name: 'login',
+  data() {
+    return {
+      cityList: [],
+      cityChoice: null
     }
+  },
+  mounted() {
+    this.getCityList()
+  },
+  methods: {
+    async getCityList() {
+      try {
+        const res = await request.get('/city')
+        if (res.data.code === config.successCode) {
+          this.cityList = res.data.data
+          this.cityChoice = this.cityList[0] || null
+        } else {
+          MessageBox.alert(`初始化失败！\n错误信息为:${res.data.message}`, '提示信息')
+        }
+      } catch (error) {
+        MessageBox.alert(`初始化失败！\n错误信息为:${error.message}`, '提示信息')
+      }
+    },
+    login() {
+      if (!this.cityChoice) {
+        MessageBox.alert('请先选择城市！', '提示信息')
+        return
+      }
+      this.$router.replace({
+        name: 'passengerHome',
+        params: { city: this.cityChoice }
+      })
+    }
+  }
 }
 </script>
 
 <style scoped>
-    #lert{
-        font-size: 17px;
-        font-weight: bold;
-        color: rgb(89, 61, 9)
-    }
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
+}
 
-    #back {
-        background: url(../../assets/wallhaven-mdegzm.jpg) no-repeat center center fixed;
-        width: 100%;
-        height: 100%;
-    }
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 44px 36px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+}
 
-    #login {
-        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.5);
-        border-radius: 20px; 
-        background: rgb(242, 244, 245, 0.20);
-        backdrop-filter: blur(15px);
-        position: relative;
-        width: 40%;
-        height: 60%;
-        left: 30%;
-        top: 15%;
-        /* display: flex; */
-        flex-direction: column;
-        border: 1px solid #fff;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-        border-right: 1px solid rgba(255, 255, 255, 0.5);
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
-        /* gap: 30px; */
-    }
+.login-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2b5876;
+}
 
-    #loginForm >>> .el-form-item__label {
-        font-weight: bold;
-        font-family: "fantasy";
-        color:rgb(80, 47, 4);
-        font-size: 13px;
-    }
+.login-subtitle {
+  margin: 8px 0 28px;
+  color: #999;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
 
-    .el-form {
-        margin-top: 30px;
-    }
+.city-select {
+  width: 100%;
+}
 
-    .el-input {
-        width: 350px;
-    }
+.login-button {
+  width: 100%;
+  margin-top: 8px;
+  font-size: 16px;
+  letter-spacing: 4px;
+  border-radius: 8px;
+}
 
-    .el-input >>> .el-input__inner {
-        font-size: 13px;
-        font-weight: 500;
-    }
+@media (max-width: 480px) {
+  .login-card {
+    padding: 28px 20px;
+  }
 
-    .DAButton {
-        width: 45%;
-        font-size: 13px
-    }
+  .login-title {
+    font-size: 20px;
+  }
+}
 </style>

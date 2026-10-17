@@ -1,23 +1,35 @@
 package com.example.wayhome.config;
 
-import com.example.wayhome.Interceptor.JwtInterceptor;
-import jakarta.annotation.Resource;
+import com.example.wayhome.interceptor.JwtInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.List;
-
+/**
+ * Web MVC 配置：跨域与拦截器。
+ *
+ * @author WayHome
+ */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Resource
-    private JwtInterceptor jwtInterceptor;
+    /** 管理端允许访问的来源 */
+    private static final String[] ALLOWED_ORIGINS = {"http://localhost:18080", "http://localhost:18081"};
+
+    /** 登录接口路径 */
+    private static final String LOGIN_PATH = "/admin";
+
+    private final JwtInterceptor jwtInterceptor;
+
+    public WebConfig(JwtInterceptor jwtInterceptor) {
+        this.jwtInterceptor = jwtInterceptor;
+    }
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:18080", "http://localhost:18081")
+                .allowedOrigins(ALLOWED_ORIGINS)
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
@@ -27,18 +39,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/admin");
+                .excludePathPatterns(LOGIN_PATH);
     }
-
-
-//    @Override
-//    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-//        MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-//        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-//        objectMapper.registerModule(new JavaTimeModule());
-//        messageConverter.setObjectMapper(objectMapper);
-//        converters.add(0, messageConverter);
-//    }
 }

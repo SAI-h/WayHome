@@ -27,5 +27,5 @@ public interface ScheduleMapper extends BaseMapper<Schedule> {
             "AND r.cityID = #{cityID} " +
             "AND JSON_UNQUOTE(JSON_EXTRACT(workdays, '$.\"${_workday}\"')) = 'true' " +
             "AND s.isDeleted = 0")
-    List<Schedule> scheduleSelectByTime(@Param("_workday") String _workday, @Param("_time") LocalTime _time, @Param("cityID") Integer cityID);
+    List<Schedule> scheduleSelectByTime(@Param("_workday") String workday, @Param("_time") LocalTime time, @Param("cityID") Integer cityId);
 }

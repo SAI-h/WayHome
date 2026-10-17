@@ -50,13 +50,14 @@ import newPath from './newPath.vue'
 import editRoute from './editRoute.vue'
 import moment from 'moment'
 import axios from 'axios'
+import config from '../config'
 import { MessageBox } from 'element-ui';
 
 const ERROR = 404;
 const SUCCESS = 200;
 const EXPIRE = 702;
 // const BASE = "http://REPLACE_ME_WITH_YOUR_SERVER_HOST:3000";
-const BASE = "http://localhost:3000";
+const BASE = config.baseUrl;
 
 // const jwt = localStorage.getItem('jwt');
 // axios.defaults.headers.common['Authorization'] = jwt;

@@ -53,7 +53,7 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
             throw new BusinessException(ResultCodeEnum.INSERT_ERROR);
         }
 
-        Station station = StationConvert.convertToDO(stationDTO);
+        Station station = StationConvert.convertToDo(stationDTO);
         station.setPointID(point.getPointID());
 
         // 再插入station
@@ -99,7 +99,7 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
         List<StationVO> stationVOList = new ArrayList<>();
         if(!stations.isEmpty()) {
             for (Station station : stations) {
-                StationVO stationVO = StationConvert.convertToVO(station);
+                StationVO stationVO = StationConvert.convertToVo(station);
                 stationVOList.add(stationVO);
                 redisTemplate.opsForList().rightPush(stationKey, stationVO);
                 redisTemplate.opsForValue().set("stationMap:staID:" + station.getStaID(), station.getStaName() + ":" + station.getCityID());
@@ -109,20 +109,6 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
         }
         return stationVOList;
     }
-
-//    @Override
-//    public List<StationVO> stationQueryAll(Integer cityID) {
-//        List<Station> stations = stationMapper.stationQuery(null, cityID);
-//        if(stations == null) {
-//            throw new BusinessException(ResultCodeEnum.QUERY_ERROR);
-//        }
-//        List<StationVO> stationVOList = new ArrayList<>();
-//        for(Station station: stations) {
-//            StationVO stationVO = StationConvert.convertToVO(station);
-//            stationVOList.add(stationVO);
-//        }
-//        return stationVOList;
-//    }
 
     @Override
     @Transactional
@@ -136,7 +122,7 @@ public class StationServiceImpl extends ServiceImpl<StationMapper, Station> impl
         pointMapper.update(pointLambdaUpdateWrapper);
 
         // 更新 station
-        Station station = StationConvert.convertToDO(stationDTO);
+        Station station = StationConvert.convertToDo(stationDTO);
         LambdaUpdateWrapper<Station> stationLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         stationLambdaUpdateWrapper.eq(Station::getStaID, station.getStaID())
                 .set(Station::getStaName, station.getStaName())

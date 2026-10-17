@@ -1,8 +1,8 @@
 // const port = 8080; // 设置端口
 module.exports = {
-    // devServer: {
-    //     host: 'REPLACE_ME_WITH_YOUR_SERVER_HOST'
-    // },
+    devServer: {
+        port: 18080, // 管理端端口
+    },
     publicPath: './',
     outputDir: 'dist', // build时构建文件的目录 构建时传入 --no-clean 可关闭该行为
     assetsDir: 'assets', // build时放置生成的静态资源 (js、css、img、fonts) 的 (相对于 outputDir 的) 目录

@@ -1,138 +1,189 @@
 <template>
-    <el-container style="height: 608px; border: 1px solid #eee;">
-        <el-aside width="200px" style="background-color: #545c64">
-            <el-menu  
-                default-active="1-1"
-                :default-openeds="['1', '2', '3']"
-                background-color="#545c64"
-                text-color="wheat"
-                active-text-color="darkorange" 
-                @select="handleSelect">
-                <el-submenu index="1">
-                    <template slot="title"><h4>公交规划</h4></template>
-                    <el-menu-item-group title="站点/线路">
-                        <el-menu-item index="1-1">站点设置</el-menu-item>
-                        <el-menu-item index="1-2">线路设置</el-menu-item>
-                        <el-menu-item index="1-3">班次规划</el-menu-item>
-                    </el-menu-item-group>
-                </el-submenu>
+  <el-container class="home-container">
+    <el-aside width="220px" class="home-aside">
+      <div class="logo-area">
+        <img src="../assets/busSystem.png" alt="WayHome" />
+        <span>公交规划</span>
+      </div>
+      <el-menu
+        default-active="1-1"
+        :default-openeds="['1']"
+        background-color="#2b3a4a"
+        text-color="#e8eef3"
+        active-text-color="#ffb400"
+        @select="handleSelect"
+      >
+        <el-submenu index="1">
+          <template slot="title">
+            <i class="el-icon-guide"></i>
+            <span>站点 / 线路</span>
+          </template>
+          <el-menu-item-group>
+            <el-menu-item index="1-1">站点设置</el-menu-item>
+            <el-menu-item index="1-2">线路设置</el-menu-item>
+            <el-menu-item index="1-3">班次规划</el-menu-item>
+          </el-menu-item-group>
+        </el-submenu>
+      </el-menu>
+    </el-aside>
 
-            </el-menu>
-        </el-aside>
-        
-        <el-container>
-            <el-header style="text-align: center; font-size: 12px; background-color: antiquewhite;">
-                <img style="height: 60px; margin-left: 100px;" src="../assets/busSystem.png"/>
-                <el-button style="float: right;" type="warning" icon="el-icon-thumb" @click="turnOff" size="small">抵达终点站</el-button>
-            </el-header>
-            
-            <el-main style="padding: 20px">
-                <!-- 向子组件传值 -->
-                <MapContainer v-if="selection === '1-1' || selection === '1-2'" :city="city"/>
-                <stations v-if="selection === '1-1'"/>
-                <bus-routes v-else-if="selection === '1-2'"/>
-                <Schedule v-else-if="selection === '1-3'"></Schedule>
-            </el-main>
-        </el-container>
+    <el-container>
+      <el-header class="home-header">
+        <span class="header-title">公交规划管理平台</span>
+        <el-button
+          type="warning"
+          size="small"
+          icon="el-icon-switch-button"
+          @click="turnOff"
+        >
+          退出系统
+        </el-button>
+      </el-header>
+
+      <el-main class="home-main">
+        <MapContainer v-if="selection === '1-1' || selection === '1-2'" />
+        <Stations v-if="selection === '1-1'" />
+        <BusRoutes v-else-if="selection === '1-2'" />
+        <Schedule v-else-if="selection === '1-3'" />
+      </el-main>
     </el-container>
+  </el-container>
 </template>
 
 <script>
 import { MessageBox } from 'element-ui'
-import axios from 'axios'
 import MapContainer from './MapContainer.vue'
 import Stations from './stations.vue'
 import BusRoutes from './busRoutes.vue'
 import Schedule from './schedule.vue'
-const ERROR = 404;
-const SUCCESS = 200;
-const EXPIRE = 702;
-// const BASE = "http://REPLACE_ME_WITH_YOUR_SERVER_HOST:3000";
-const BASE = "http://localhost:3000";
-
-// const jwt = localStorage.getItem('jwt');
-// axios.defaults.headers.common['Authorization'] = jwt;
 
 export default {
-    name: 'home',
-    data() {
-        return {
-            selection: '',
-            city: {
-                id: '',
-                name: '',
-                lngLat:[]
-            }
-        }
-    },
-    components:{
-        MapContainer,
-        Stations,
-        BusRoutes,
-        Schedule,
-    },
-    mounted() {
-        this.initCity();
-    },
-    methods:{
-        initCity() { 
-            if(this.$route.params === undefined && JSON.parse(sessionStorage.getItem('admin')) === null) {
-                console.log(this.$route.params);
-                MessageBox.alert("抱歉，请先进行登录！", "提示信息");
-                this.$router.replace('/login'); 
-            }
-            else {
-                let jwt = this.$route.params.jwt;
-                const base64Url = jwt.split('.')[1]; 
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                let body = JSON.parse(jsonPayload);
-
-                if(sessionStorage.getItem('admin') === null) {
-                    sessionStorage.setItem('admin', JSON.stringify({
-                        adminID: body.adminID,
-                    }));
-                }
-
-                if(sessionStorage.getItem('city') === null) {
-                    this.city.id = body.cityID;
-                    this.city.name = body.cityName;
-                    this.city.lngLat = [body.cityLng, body.cityLat];
-                    if(this.city.name !== '') {
-                        sessionStorage.setItem('city', JSON.stringify(this.city));
-                        this.selection = '1-1';
-                    }
-                }
-            }
-        },
-        handleSelect(index) { // 处理选择到的任务项
-            this.selection = index;
-        },
-        turnOff() {
-            MessageBox.confirm("拜拜ヾ(•ω•`)o！！", "退出系统", 
-                {
-                    confirmButtonText: '再见ヾ(￣▽￣)',
-                    cancelButtonText: '好奇点到了，我再瞅瞅🤦‍♂️'
-                }
-            )
-            .then(
-                () => {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    this.$router.replace('/login');
-                }
-            )
-        }
+  name: 'home',
+  components: {
+    MapContainer,
+    Stations,
+    BusRoutes,
+    Schedule
+  },
+  data() {
+    return {
+      selection: '1-1',
+      city: {
+        id: '',
+        name: '',
+        lngLat: []
+      }
     }
+  },
+  mounted() {
+    this.initCity()
+  },
+  methods: {
+    initCity() {
+      const jwt = this.$route.params.jwt
+      if (!jwt) {
+        MessageBox.alert('抱歉，请先进行登录！', '提示信息')
+        this.$router.replace('/login')
+        return
+      }
+
+      const body = this.parseJwt(jwt)
+      if (sessionStorage.getItem('city') === null) {
+        this.city = {
+          id: body.cityID,
+          name: body.cityName,
+          lngLat: [body.cityLng, body.cityLat]
+        }
+        if (this.city.name) {
+          sessionStorage.setItem('city', JSON.stringify(this.city))
+        }
+      }
+    },
+    parseJwt(token) {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      )
+      return JSON.parse(jsonPayload)
+    },
+    handleSelect(index) {
+      this.selection = index
+    },
+    turnOff() {
+      MessageBox.confirm('确认退出系统吗？', '退出系统', {
+        confirmButtonText: '退出',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        localStorage.clear()
+        sessionStorage.clear()
+        this.$router.replace('/login')
+      })
+    }
+  }
 }
 </script>
 
-<style>
-    .el-header {
-        background-color: #B3C0D1;
-        color: #333;
-        line-height: 60px;
-    }
+<style scoped>
+.home-container {
+  height: 100vh;
+}
+
+.home-aside {
+  background-color: #2b3a4a;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  color: #ffb400;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.logo-area img {
+  height: 40px;
+}
+
+.home-aside .el-menu {
+  border-right: none;
+}
+
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.header-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.home-main {
+  background: #f5f7fa;
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .home-aside {
+    width: 160px !important;
+  }
+
+  .header-title {
+    font-size: 14px;
+  }
+}
 </style>

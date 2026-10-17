@@ -86,6 +86,7 @@
 
 <script>
 import axios from 'axios'
+import config from '../../config'
 import { MessageBox } from 'element-ui'
 const ERROR = 404;
 const SUCCESS = 200;
@@ -94,7 +95,7 @@ const PROCESSING = 802;
 const busSpeed = 6.3; // (m/s)
 const infinity = Number.POSITIVE_INFINITY;
 // const BASE = "http://REPLACE_ME_WITH_YOUR_SERVER_HOST:3000";
-const BASE = "http://localhost:3000";
+const BASE = config.baseUrl;
 
 export default {
     name: "calPath",

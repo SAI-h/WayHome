@@ -7,7 +7,12 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
- 
+
+/**
+ * RabbitMQ 连接工厂与消息模板配置。
+ *
+ * @author WayHome
+ */
 @Configuration
 public class RabbitConfig {
 
@@ -26,27 +31,42 @@ public class RabbitConfig {
     @Value("${spring.rabbitmq.virtual-host}")
     private String virtualHost;
 
+    /**
+     * 配置 RabbitMQ 连接工厂。
+     *
+     * @return 连接工厂
+     */
     @Bean
     public CachingConnectionFactory connectionFactory() {
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
-        connectionFactory.setHost(host);
-        connectionFactory.setPort(port);
-        connectionFactory.setUsername(username);
-        connectionFactory.setPassword(password);
-        connectionFactory.setVirtualHost(virtualHost);
-        return connectionFactory;
+        CachingConnectionFactory factory = new CachingConnectionFactory();
+        factory.setHost(host);
+        factory.setPort(port);
+        factory.setUsername(username);
+        factory.setPassword(password);
+        factory.setVirtualHost(virtualHost);
+        return factory;
     }
- 
+
+    /**
+     * 配置 JSON 消息转换器。
+     *
+     * @return 消息转换器
+     */
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
- 
+
+    /**
+     * 配置 RabbitTemplate。
+     *
+     * @param connectionFactory 连接工厂
+     * @return RabbitTemplate
+     */
     @Bean
     public RabbitTemplate rabbitTemplate(CachingConnectionFactory connectionFactory) {
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setMessageConverter(jsonMessageConverter());
-        // 设置 RabbitMQ 服务器地址等其他配置
-        return rabbitTemplate;
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(jsonMessageConverter());
+        return template;
     }
 }
