@@ -1,39 +1,50 @@
 spring:
   application:
     name: wayHome
+
+  # 默认启用 local profile，真实凭据放在 application-local.yaml（已被 .gitignore 忽略）
+  # 生产环境请通过环境变量 SPRING_PROFILES_ACTIVE 指定其它 profile
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
-      url: jdbc:mysql://localhost:3306/bus_dataset?useUnicode=true&characterEncoding=utf8
-      username: root
-      password: ${DB_PASSWORD}
+      url: ${DB_URL:jdbc:mysql://localhost:3306/bus_dataset?useUnicode=true&characterEncoding=utf8}
+      username: ${DB_USERNAME:root}
+      password: ${DB_PASSWORD:}
       driver-class-name: com.mysql.cj.jdbc.Driver
+
   data:
     redis:
-      port: 6379
-      database: 0
-  rabbitmq:
-    host: localhost
-    port: 5672       # 默认端口
-    username: guest  # 默认用户名
-    password: guest  # 默认密码
-    virtual-host: /  # 默认虚拟主机
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST:/}
 
 server:
-  port: 3000
+  port: ${SERVER_PORT:3000}
   servlet:
     context-path: /
 
-
 jwt:
-  secret: REPLACE_ME_WITH_RANDOM_JWT_SECRET
-  expiration: 60
+  # JWT 签名密钥，必须通过环境变量 JWT_SECRET 注入
+  # 本地开发可写在 application-local.yaml 中，切勿提交到仓库
+  secret: ${JWT_SECRET}
+  # 令牌有效期（秒）
+  expiration: ${JWT_EXPIRATION:3600}
 
 redis:
+  # 业务缓存过期时间（秒）
   expiration: 86400
 
-
 speed:
+  # 公交平均行驶速度（米/秒）
   6.3
-

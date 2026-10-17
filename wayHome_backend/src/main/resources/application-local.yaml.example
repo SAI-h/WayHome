@@ -1,0 +1,36 @@
+# 本地开发配置模板
+#
+# 使用方法：
+#   1. 复制本文件为 application-local.yaml
+#   2. 填入你自己的数据库、Redis、RabbitMQ 与 JWT 配置
+#   3. application-local.yaml 已被 .gitignore 忽略，不会被提交
+#
+# 说明：application.yaml 默认激活 local profile，
+#      因此本地直接 mvn spring-boot:run 即可读取本配置。
+
+spring:
+  datasource:
+    druid:
+      url: jdbc:mysql://localhost:3306/bus_dataset?useUnicode=true&characterEncoding=utf8
+      username: root
+      password: your-db-password
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+
+jwt:
+  # 请替换为一个足够长的随机字符串，例如：
+  #   openssl rand -base64 48
+  secret: replace-with-your-own-random-secret
+  expiration: 60

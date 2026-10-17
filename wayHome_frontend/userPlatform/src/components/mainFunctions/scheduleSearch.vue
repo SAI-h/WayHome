@@ -96,7 +96,6 @@ const WEEK_DAYS = {
     '周六': 5,
     '周日': 6
 };
-// const BASE = "http://REPLACE_ME_WITH_YOUR_SERVER_HOST:3000";
 const BASE = config.baseUrl;
 
 export default {

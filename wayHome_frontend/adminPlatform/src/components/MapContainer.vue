@@ -9,9 +9,12 @@
 <script>
 import { MessageBox } from 'element-ui'
 import AMapLoader from '@amap/amap-jsapi-loader'
+// 高德地图密钥通过环境变量注入，见项目根目录 .env.local.example
+const AMAP_SECURITY_CODE = process.env.VUE_APP_AMAP_SECURITY_CODE || ''
+const AMAP_KEY = process.env.VUE_APP_AMAP_KEY || ''
 // 设置安全密钥
 window._AMapSecurityConfig = {
-    securityJsCode: 'REPLACE_ME_WITH_YOUR_AMAP_SECURITY_CODE'
+    securityJsCode: AMAP_SECURITY_CODE
 }
 export default {
     name: 'MapContainer',
@@ -47,7 +50,7 @@ export default {
             // if(this.city.name !== '') 
             //     sessionStorage.setItem('city', JSON.stringify(this.city));
             AMapLoader.load({
-                key: 'REPLACE_ME_WITH_YOUR_AMAP_JS_API_KEY',
+                key: AMAP_KEY,
                 version: '2.0', 
                 plugins: ['AMap.Scale', 'AMap.PlaceSearch', 'AMap.AutoComplete'] // 插件
             }).then(AMap => {

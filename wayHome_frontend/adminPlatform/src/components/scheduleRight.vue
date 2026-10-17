@@ -65,7 +65,6 @@ const ERROR = 404;
 const SUCCESS = 200;
 const FAILURE = 202;
 const EXPIRE = 702;
-// const BASE = "http://REPLACE_ME_WITH_YOUR_SERVER_HOST:3000";
 const BASE = config.baseUrl;
 
 // const jwt = localStorage.getItem('jwt');

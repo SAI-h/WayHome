@@ -49,7 +49,6 @@ import axios from 'axios'
 import config from '../../config'
 const ERROR = 404;
 const SUCCESS = 200;
-// const BASE = "http://REPLACE_ME_WITH_YOUR_SERVER_HOST:3000";
 const BASE = config.baseUrl;
 
 export default {

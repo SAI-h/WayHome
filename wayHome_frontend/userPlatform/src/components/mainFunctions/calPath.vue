@@ -94,7 +94,6 @@ const TASK_RECEIVE = 801;
 const PROCESSING = 802;
 const busSpeed = 6.3; // (m/s)
 const infinity = Number.POSITIVE_INFINITY;
-// const BASE = "http://REPLACE_ME_WITH_YOUR_SERVER_HOST:3000";
 const BASE = config.baseUrl;
 
 export default {

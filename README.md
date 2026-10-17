@@ -79,25 +79,41 @@ WayHome
 
 ### 1. 准备中间件
 
-确保 MySQL、Redis、RabbitMQ 已启动，并按需修改后端配置：
+确保 MySQL、Redis、RabbitMQ 已启动。
 
-```yaml
-# wayHome_backend/src/main/resources/application.yaml
-spring:
-  datasource:
-    druid:
-      url: jdbc:mysql://localhost:3306/bus_dataset?useUnicode=true&characterEncoding=utf8
-      username: root
-      password: ${DB_PASSWORD}
-  data:
-    redis:
-      port: 6379
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+#### 配置敏感信息（重要）
+
+仓库中**不包含任何真实凭据**，所有敏感配置均通过环境变量或本地配置文件注入：
+
+**后端**：
+
+```bash
+cd wayHome_backend/src/main/resources
+cp application-local.yaml.example application-local.yaml
+# 编辑 application-local.yaml，填入数据库密码、JWT 密钥等
 ```
+
+> `application-local.yaml` 已被 `.gitignore` 忽略，不会提交到仓库。
+> `application.yaml` 默认激活 `local` profile，因此本地直接启动即可读取该配置。
+
+**前端**（管理端、用户端各一份）：
+
+```bash
+cd wayHome_frontend/adminPlatform
+cp .env.local.example .env.local
+# 编辑 .env.local，填入高德地图 Key 与安全密钥
+```
+
+| 配置项 | 环境变量 | 说明 |
+| --- | --- | --- |
+| 数据库地址 | `DB_URL` | 默认 `jdbc:mysql://localhost:3306/bus_dataset` |
+| 数据库用户名 | `DB_USERNAME` | 默认 `root` |
+| 数据库密码 | `DB_PASSWORD` | 无默认值 |
+| Redis 地址 | `REDIS_HOST` / `REDIS_PORT` | 默认 `localhost:6379` |
+| RabbitMQ | `RABBITMQ_HOST` / `RABBITMQ_USERNAME` / `RABBITMQ_PASSWORD` | 默认 `localhost`、`guest` |
+| JWT 密钥 | `JWT_SECRET` | **必须设置**，建议 `openssl rand -base64 48` 生成 |
+| 高德地图 | `VUE_APP_AMAP_KEY` / `VUE_APP_AMAP_SECURITY_CODE` | 前端地图密钥 |
+| 后端地址 | `VUE_APP_BASE_URL` | 前端请求地址，默认 `http://localhost:3000` |
 
 > 数据库 `bus_dataset` 需包含系统对应的表结构（admin、city、point、route、route_point、schedule、station）。
 
@@ -193,6 +209,7 @@ npm run serve
 
 ## 八、说明与注意事项
 
-- 前端地图使用了高德地图 JS API，`key` 与 `securityJsCode` 需替换为你自己的密钥。
-- JWT 签名密钥 `jwt.secret` 建议通过环境变量注入，避免明文提交。
-- 生产环境请关闭 `productionSourceMap`，并通过 `VUE_APP_BASE_URL` 指定后端地址。
+- 仓库不包含任何真实凭据：数据库密码、JWT 密钥、高德地图 Key 均通过环境变量或本地配置文件（`application-local.yaml`、`.env.local`）注入，模板见对应的 `.example` 文件。
+- JWT 密钥 `JWT_SECRET` 建议使用 `openssl rand -base64 48` 生成足够长的随机字符串。
+- 生产环境请通过 `SPRING_PROFILES_ACTIVE` 指定 profile，并通过 `VUE_APP_BASE_URL` 指定后端地址。
+- 生产环境建议关闭 `productionSourceMap` 以加速构建。

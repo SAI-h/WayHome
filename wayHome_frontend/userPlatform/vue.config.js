@@ -1,8 +1,5 @@
 // const port = 8080; // 设置端口
 module.exports = {
-    // devServer: {
-    //     host: 'REPLACE_ME_WITH_YOUR_SERVER_HOST'
-    // },
     devServer: {
       port: 18081, // 端口号
     },
